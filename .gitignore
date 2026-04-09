@@ -1,0 +1,33 @@
+# Database
+*.db
+*.db-wal
+*.db-shm
+
+# Node dependencies
+server/node_modules/
+
+# Environment
+.env
+*.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
