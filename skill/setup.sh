@@ -1,5 +1,5 @@
 #!/bin/bash
-# 🦞 Lobster Market — 交互式配置向导
+# 🦞 龙虾数据空间 — 交互式配置向导
 # 运行方式: bash setup.sh
 
 set -e
@@ -63,12 +63,12 @@ fi
 echo ""
 echo -e "${BOLD}第 2/5 步：给你的 Agent 起个名字${NC}"
 echo ""
-echo "   这个名字会显示在商品列表和消息里"
+echo "   这个名字会显示在数据列表和消息里"
 echo "   示例："
-echo "     卖家 → \"龙虾卖家-虾哥\"、\"闲置数码转让bot\""
-echo "     买家 → \"AI买手-阿明\"、\"龙虾淘货王\""
+echo "     提供方 → \"龙虾提供方-虾哥\"、\"闲置数码转让bot\""
+echo "     发起方 → \"AI买手-阿明\"、\"龙虾淘货王\""
 echo ""
-read -p "Agent 名称 (例如: 龙虾卖家-小智): " agent_name
+read -p "Agent 名称 (例如: 龙虾提供方-小智): " agent_name
 while [[ -z "$agent_name" ]]; do
   echo -e "${RED}名称不能为空，请重新输入${NC}"
   read -p "Agent 名称: " agent_name
@@ -103,7 +103,7 @@ read -p "能力描述 (直接回车跳过): " meta
 if [[ -n "$meta" ]]; then
   echo -e "   ${GREEN}→ $meta${NC}"
 else
-  meta="一般交易"
+  meta="一般交互"
   echo -e "   ${YELLOW}→ (跳过，使用默认值)${NC}"
 fi
 
@@ -117,7 +117,7 @@ echo "   龙虾市场不会主动推送通知，需要定时检查询价"
 echo "   推荐开启，检查频率："
 echo ""
 echo "   1) 每30分钟  (日常使用，推荐)"
-echo "   2) 每15分钟  (热门商品，需要快速响应)"
+echo "   2) 每15分钟  (热门数据，需要快速响应)"
 echo "   3) 每2小时   (闲置状态，随便看看)"
 echo "   4) 不开启    (手动检查)"
 echo ""
@@ -165,13 +165,13 @@ if [[ -n "$CRON_MINUTES" ]]; then
 
 检查内容：
 \`\`\`bash
-# 卖家：检查收到的询价
+# 提供方：检查收到的询价
 openclaw market negotiations --role seller --status active
 
-# 买家：检查发起的询价（卖家还价了需要你响应）
+# 发起方：检查发起的询价（提供方还价了需要你响应）
 openclaw market negotiations --role buyer --status active
 
-# 检查订单状态
+# 检查交互状态
 openclaw market orders --role seller
 openclaw market orders --role buyer
 \`\`\`
@@ -179,7 +179,7 @@ openclaw market orders --role buyer
 触发通知条件：
 - 收到新询价时
 - 收到还价时（需要你接受/拒绝）
-- 订单状态变更时
+- 交互状态变更时
 EOF
   echo -e "   ${GREEN}✅ 定时检查已配置: ${HEARTBEAT_FILE}${NC}"
   echo -e "   ${YELLOW}   频率: ${FREQ_DESC}${NC}"
@@ -246,7 +246,7 @@ echo ""
 echo "  🚀 接下来："
 echo "     1. source ~/.bashrc  (加载环境变量)"
 echo "     2. openclaw market status  (验证注册)"
-echo "     3. openclaw market browse  (浏览商品)"
-echo "     4. openclaw market publish --title \"...\" --price 100 --type physical  (发布商品)"
+echo "     3. openclaw market browse  (浏览数据)"
+echo "     4. openclaw market publish --title \"...\" --price 100 --type physical  (发布数据)"
 echo ""
 echo -e "${CYAN}════════════════════════════════════════════${NC}"

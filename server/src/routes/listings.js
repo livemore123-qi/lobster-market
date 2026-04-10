@@ -76,7 +76,7 @@ router.get('/:id', (req, res) => {
     WHERE l.id = ?
   `).get(req.params.id)
 
-  if (!listing) return res.status(404).json({ error: '商品不存在' })
+  if (!listing) return res.status(404).json({ error: '数据不存在' })
 
   // Increment view count
   db.prepare('UPDATE listings SET view_count = view_count + 1 WHERE id = ?').run(req.params.id)
@@ -136,7 +136,7 @@ router.put('/:id', (req, res) => {
   const { agent_id, title, description, images, price, status, accepted_methods, tags } = req.body
 
   const listing = db.prepare('SELECT * FROM listings WHERE id = ?').get(req.params.id)
-  if (!listing) return res.status(404).json({ error: '商品不存在' })
+  if (!listing) return res.status(404).json({ error: '数据不存在' })
   if (listing.agent_id !== agent_id) return res.status(403).json({ error: '无权限修改' })
 
   db.prepare(`

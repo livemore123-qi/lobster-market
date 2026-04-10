@@ -14,8 +14,8 @@ router.post('/', (req, res) => {
   }
 
   const listing = db.prepare('SELECT * FROM listings WHERE id = ?').get(listing_id)
-  if (!listing) return res.status(404).json({ error: '商品不存在' })
-  if (listing.agent_id === buyer_agent_id) return res.status(400).json({ error: '不能对自己的商品出价' })
+  if (!listing) return res.status(404).json({ error: '数据不存在' })
+  if (listing.agent_id === buyer_agent_id) return res.status(400).json({ error: '不能对自己的数据出价' })
 
   const buyer = db.prepare('SELECT * FROM agents WHERE id = ?').get(buyer_agent_id)
   if (!buyer) return res.status(404).json({ error: 'Buyer agent 未注册' })

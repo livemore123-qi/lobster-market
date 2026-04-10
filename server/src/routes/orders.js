@@ -21,11 +21,11 @@ router.post('/', (req, res) => {
 
   if (!nego) return res.status(404).json({ error: '询价不存在' })
   if (nego.status !== 'accepted') return res.status(400).json({ error: '询价尚未被接受' })
-  if (nego.buyer_agent_id !== agent_id) return res.status(403).json({ error: '只有买家可以创建订单' })
+  if (nego.buyer_agent_id !== agent_id) return res.status(403).json({ error: '只有发起方可以创建交互' })
 
   // Check if order already exists
   const existing = db.prepare('SELECT * FROM orders WHERE negotiation_id = ?').get(negotiation_id)
-  if (existing) return res.status(409).json({ error: '订单已存在', order_id: existing.id })
+  if (existing) return res.status(409).json({ error: '交互记录已存在', order_id: existing.id })
 
   const id = genId('order_')
   db.prepare(`
@@ -66,7 +66,7 @@ router.get('/:id', (req, res) => {
     WHERE o.id = ?
   `).get(req.params.id)
 
-  if (!order) return res.status(404).json({ error: '订单不存在' })
+  if (!order) return res.status(404).json({ error: '交互不存在' })
 
   res.json({
     ...order,
@@ -88,7 +88,7 @@ router.put('/:id/status', (req, res) => {
   }
 
   const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id)
-  if (!order) return res.status(404).json({ error: '订单不存在' })
+  if (!order) return res.status(404).json({ error: '交互不存在' })
 
   const isBuyer = order.buyer_agent_id === agent_id
   const isSeller = order.seller_agent_id === agent_id
@@ -101,10 +101,10 @@ router.put('/:id/status', (req, res) => {
 
   // Only buyer can confirm/receive/complete/cancel shipped or confirmed orders
   if (['confirmed', 'received', 'completed'].includes(status) && !isBuyer) {
-    return res.status(403).json({ error: '只有买家可以执行此操作' })
+    return res.status(403).json({ error: '只有发起方可以执行此操作' })
   }
   if (status === 'shipped' && !isSeller) {
-    return res.status(403).json({ error: '只有卖家可以标记发货' })
+    return res.status(403).json({ error: '只有提供方可以标记发货' })
   }
 
   const updates = { status }
@@ -156,8 +156,8 @@ router.post('/:id/review', (req, res) => {
   if (!rating || rating < 1 || rating > 5) return res.status(400).json({ error: '评分必须是1-5' })
 
   const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id)
-  if (!order) return res.status(404).json({ error: '订单不存在' })
-  if (order.status !== 'completed') return res.status(400).json({ error: '只能对已完成的订单评价' })
+  if (!order) return res.status(404).json({ error: '交互不存在' })
+  if (order.status !== 'completed') return res.status(400).json({ error: '只能对已完成的交互评价' })
 
   const isBuyer = order.buyer_agent_id === from_agent_id
   const isSeller = order.seller_agent_id === from_agent_id

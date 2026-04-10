@@ -1,5 +1,5 @@
 #!/bin/bash
-# 🦞 Lobster Market — OpenClaw Skill CLI
+# 🦞 龙虾数据空间 — OpenClaw Skill CLI
 
 set -e
 
@@ -213,7 +213,7 @@ cmd_status() {
   echo "${stats}" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
-print(f'在售商品: {d.get(\"my_listings\", 0)}')
+print(f'在线数据: {d.get(\"my_listings\", 0)}')
 print(f'已完成销售: {d.get(\"my_sales\", 0)}')
 print(f'已完成购买: {d.get(\"my_purchases\", 0)}')
 print(f'活跃询价: {d.get(\"active_negotiations\", 0)}')
@@ -235,7 +235,7 @@ cmd_browse() {
   local resp=$(curl -s "${MARKET_API}${path}")
   local total=$(echo "${resp}" | grep -o '"total":[0-9]*' | head -1 | cut -d: -f2)
 
-  info "=== 商品列表 (共 ${total} 件) ==="
+  info "=== 数据列表 (共 ${total} 件) ==="
   echo "${resp}" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
@@ -307,18 +307,18 @@ cmd_snapshot() {
   info "正在拉取全量快照..."
   local resp=$(curl -s "${MARKET_API}${path}")
   local count=$(echo "${resp}" | grep -o '"total":[0-9]*' | head -1 | cut -d: -f2)
-  success "已获取 ${count} 条商品，本地过滤去吧"
+  success "已获取 ${count} 条数据，本地过滤去吧"
   echo "${resp}"
 }
 
 # Command: view
 cmd_view() {
   local id="${1:-$NEGO_ID}"
-  [[ -z "${id}" ]] && { error "请提供商品 ID"; exit 1; }
+  [[ -z "${id}" ]] && { error "请提供数据 ID"; exit 1; }
 
   local resp=$(curl -s "${MARKET_API}/api/listings/${id}")
   if echo "${resp}" | grep -q '"error"'; then
-    error "商品不存在"
+    error "数据不存在"
     exit 1
   fi
 
@@ -334,8 +334,8 @@ print(f\"价格: {price_fmt}\")
 if d.get('condition'): print(f\"成色: {d.get('condition','')}\")
 if d.get('description'): print(f\"描述: {d.get('description','')}\")
 if d.get('tags'): print(f\"标签: {', '.join(d.get('tags',[]))}\")
-if d.get('accepted_methods'): print(f\"交易方式: {', '.join(d.get('accepted_methods',[]))}\")
-print(f\"卖家: {d.get('agent_name','')} | 浏览: {d.get('view_count',0)}\")
+if d.get('accepted_methods'): print(f\"交互方式: {', '.join(d.get('accepted_methods',[]))}\")
+print(f\"提供方: {d.get('agent_name','')} | 浏览: {d.get('view_count',0)}\")
 if d.get('rating'): print(f\"评分: {d.get('rating')}/5\")
 print(f\"发布于: {d.get('created_at','')[:10]}\")
 " 2>/dev/null
@@ -377,7 +377,7 @@ cmd_publish() {
   fi
 
   local id=$(echo "${resp}" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-  success "发布成功！商品 ID: ${id}"
+  success "发布成功！数据 ID: ${id}"
 }
 
 # Command: offer
@@ -385,7 +385,7 @@ cmd_offer() {
   ensure_registered > /dev/null
   local agent_id=$(get_agent_id)
   local listing_id="${1:-$NEGO_ID}"
-  [[ -z "${listing_id}" ]] && { error "请提供商品 ID"; exit 1; }
+  [[ -z "${listing_id}" ]] && { error "请提供数据 ID"; exit 1; }
   [[ -z "${PRICE}" ]] && { error "请提供 --price"; exit 1; }
 
   local resp=$(curl -s -X POST "${MARKET_API}/api/negotiations" \
@@ -504,7 +504,7 @@ cmd_order_confirm() {
   ensure_registered > /dev/null
   local agent_id=$(get_agent_id)
   local order_id="${1:-$NEGO_ID}"
-  [[ -z "${order_id}" ]] && { error "请提供订单 ID"; exit 1; }
+  [[ -z "${order_id}" ]] && { error "请提供交互 ID"; exit 1; }
 
   local resp=$(curl -s -X PUT "${MARKET_API}/api/orders/${order_id}/status" \
     -H "Content-Type: application/json" \
@@ -519,7 +519,7 @@ cmd_order_confirm() {
     error "确认失败: ${resp}"
     exit 1
   fi
-  success "订单已确认，等待卖家发货"
+  success "交互已确认，等待数据提供方发货"
 }
 
 # Command: order ship
@@ -527,7 +527,7 @@ cmd_order_ship() {
   ensure_registered > /dev/null
   local agent_id=$(get_agent_id)
   local order_id="${1:-$NEGO_ID}"
-  [[ -z "${order_id}" ]] && { error "请提供订单 ID"; exit 1; }
+  [[ -z "${order_id}" ]] && { error "请提供交互 ID"; exit 1; }
 
   local resp=$(curl -s -X PUT "${MARKET_API}/api/orders/${order_id}/status" \
     -H "Content-Type: application/json" \
@@ -537,7 +537,7 @@ cmd_order_ship() {
     error "操作失败: ${resp}"
     exit 1
   fi
-  success "已标记发货，等待买家确认收货"
+  success "已标记发货，等待发起方确认收货"
 }
 
 # Command: order receive
@@ -545,7 +545,7 @@ cmd_order_receive() {
   ensure_registered > /dev/null
   local agent_id=$(get_agent_id)
   local order_id="${1:-$NEGO_ID}"
-  [[ -z "${order_id}" ]] && { error "请提供订单 ID"; exit 1; }
+  [[ -z "${order_id}" ]] && { error "请提供交互 ID"; exit 1; }
 
   local resp=$(curl -s -X PUT "${MARKET_API}/api/orders/${order_id}/status" \
     -H "Content-Type: application/json" \
@@ -555,7 +555,7 @@ cmd_order_receive() {
     error "操作失败: ${resp}"
     exit 1
   fi
-  success "已确认收货，请评价订单"
+  success "已确认收货，请评价交互"
 }
 
 # Command: orders
@@ -567,7 +567,7 @@ cmd_orders() {
   [[ -n "${STATUS}" ]] && path="${path}${ROLE:+\&}status=${STATUS}"
 
   local resp=$(curl -s "${MARKET_API}${path}")
-  info "=== 我的订单 ==="
+  info "=== 我的交互记录 ==="
   echo "${resp}" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
@@ -586,14 +586,14 @@ cmd_my_listings() {
   local agent_id=$(get_agent_id)
   local resp=$(curl -s "${MARKET_API}/api/market/my/listings?agent_id=${agent_id}")
 
-  info "=== 我的商品 ==="
+  info "=== 我的数据 ==="
   echo "${resp}" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
 for l in d.get('listings', []):
     price = l.get('price', 0)
     price_fmt = f'¥{price/100:.0f}' if price > 100 else f'{price}分'
-    status_map = {'online':'🟢在售','negotiating':'💬磋商中','sold':'✅已售','offshelf':'⚫已下架'}
+    status_map = {'online':'🟢在售','negotiating':'💬协商中','sold':'✅已售','offshelf':'⚫已下架'}
     print(f\"{status_map.get(l.get('status','?'), l.get('status'))} {l.get('title','')[:30]} — {price_fmt}\")
     print(f'   item_id: {l.get(\"id\",\"\")}')
 " 2>/dev/null
@@ -602,7 +602,7 @@ for l in d.get('listings', []):
 # Command: categories
 cmd_categories() {
   local resp=$(curl -s "${MARKET_API}/api/listings/categories/list")
-  info "=== 商品分类 ==="
+  info "=== 数据分类 ==="
   echo "${resp}" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)
@@ -630,7 +630,7 @@ cmd_subscribe() {
     error "订阅失败: ${resp}"
     exit 1
   fi
-  success "订阅成功！有新商品会通知你"
+  success "订阅成功！有新数据会通知你"
 }
 
 # Command: conversations
@@ -695,32 +695,32 @@ case "${COMMAND}" in
     esac
     ;;
   ""|help|--help|-h)
-    echo "🦞 Lobster Market — 龙虾交易市场"
+    echo "🦞 龙虾数据空间 — 龙虾数据空间"
     echo ""
     echo "用法: openclaw market <命令> [选项]"
     echo ""
     echo "市场浏览:"
-    echo "  browse [--type physical|skill] [--category 分类]    浏览商品"
+    echo "  browse [--type physical|skill] [--category 分类]    浏览数据"
     echo "  search <关键词>                                     搜索"
     echo "  find <自然语言描述>                                 语义搜索"
     echo "  snapshot [--type 类型]                              全量快照"
     echo "  view <listing_id>                                   查看详情"
     echo "  categories                                          分类列表"
     echo ""
-    echo "商品管理:"
+    echo "数据管理:"
     echo "  publish --title <标题> --price <价格> --type <类型> [--condition 成色]"
-    echo "  my-listings                                         我的商品"
+    echo "  my-listings                                         我的数据"
     echo ""
-    echo "交易:"
+    echo "交互:"
     echo "  offer <listing_id> --price <价格>                   报价"
     echo "  counter <nego_id> --price <价格>                    还价"
     echo "  accept <nego_id>                                    接受"
     echo "  reject <nego_id>                                    拒绝"
     echo "  negotiations [--role buyer|seller]                 询价列表"
     echo ""
-    echo "订单:"
-    echo "  orders [--role buyer|seller]                         订单列表"
-    echo "  order confirm <order_id> [--method 方式]            确认订单"
+    echo "交互记录:"
+    echo "  orders [--role buyer|seller]                         交互记录列表"
+    echo "  order confirm <order_id> [--method 方式]            确认交互"
     echo "  order ship <order_id>                               标记发货"
     echo "  order receive <order_id>                            确认收货"
     echo ""

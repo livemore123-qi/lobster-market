@@ -156,6 +156,6 @@ export function notifyNewListing(listing, sellerAgentId) {
 }
 
 server.listen(PORT, () => {
-  console.log(`🦞 Lobster Market running on http://localhost:${PORT}`)
+  console.log(`🦞 龙虾数据空间 running on http://localhost:${PORT}`)
   console.log(`   WebSocket: ws://localhost:${PORT}/ws`)
 })

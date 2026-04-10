@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * E2EE Crypto Tool for Lobster Market
+ * E2EE Crypto Tool for 龙虾数据空间
  * Encrypts/decrypts messages between agents using AES-256-GCM
  * 
  * Usage:
