@@ -196,4 +196,80 @@ router.get('/categories/list', (req, res) => {
   res.json({ categories: cats })
 })
 
+
+// ========== REGISTRATION ==========
+
+router.post('/register', (req, res) => {
+  const { company_name, contact_name, contact_info, description, register_type, agent_id } = req.body
+  if (!company_name || !contact_name) {
+    return res.status(400).json({ error: '请填写公司名称和联系人' })
+  }
+  
+  const existing = db.prepare(
+    `SELECT id FROM registration_requests WHERE company_name = ? AND status = 'pending'`
+  ).get(company_name)
+  if (existing) {
+    return res.status(409).json({ error: '该公司已提交过注册申请，请等待审核' })
+  }
+  
+  const id = genId('reg')
+  
+  if (register_type === 'agent' && agent_id) {
+    const stmt = db.prepare(`
+      INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type, agent_id, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'approved')
+    `)
+    stmt.run(id, company_name, contact_name, contact_info || '', description || '', register_type, agent_id)
+    
+    const dsId = genId('ds')
+    const ds = db.prepare(`
+      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id)
+      VALUES (?, ?, ?, ?, ?, 'public', ?)
+    `)
+    ds.run(dsId, company_name, description || '', contact_name, contact_info || '', agent_id)
+    
+    return res.json({ id, status: 'approved', dataspace_id: dsId, message: '注册成功！您的数据空间已创建' })
+  } else {
+    const stmt = db.prepare(`
+      INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `)
+    stmt.run(id, company_name, contact_name, contact_info || '', description || '', register_type || 'manual')
+    return res.json({ id, status: 'pending', message: '申请已提交，请等待人工审核' })
+  }
+})
+
+router.get('/registrations', (req, res) => {
+  const { status = 'pending' } = req.query
+  const rows = db.prepare(
+    `SELECT * FROM registration_requests WHERE status = ? ORDER BY created_at DESC`
+  ).all(status)
+  res.json({ registrations: rows, total: rows.length })
+})
+
+router.put('/registrations/:id', (req, res) => {
+  const { status, reviewed_by } = req.body
+  if (!['approved', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: '无效状态' })
+  }
+  
+  const existing = db.prepare(`SELECT * FROM registration_requests WHERE id = ?`).get(req.params.id)
+  if (!existing) return res.status(404).json({ error: '申请不存在' })
+  
+  db.prepare(`UPDATE registration_requests SET status = ?, reviewed_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+    .run(status, reviewed_by || '', req.params.id)
+  
+  if (status === 'approved') {
+    const dsId = genId('ds')
+    db.prepare(`
+      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id)
+      VALUES (?, ?, ?, ?, ?, 'public', ?)
+    `).run(dsId, existing.company_name, existing.description, existing.contact_name, existing.contact_info, existing.agent_id || null)
+    return res.json({ success: true, dataspace_id: dsId })
+  }
+  
+  res.json({ success: true })
+})
+
+
 export default router

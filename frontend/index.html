@@ -105,6 +105,7 @@
         <button onclick="showPage('catalog')" class="text-gray-400 hover:text-white transition">数据目录</button>
         <button onclick="showPage('guide')" class="text-gray-400 hover:text-white transition">使用指南</button>
         <button onclick="showPage('install')" class="text-gray-400 hover:text-white transition">安装</button>
+        <button onclick="showRegisterModal()" class="px-4 py-2 bg-[#E84545] hover:bg-[#d63d3d] rounded-full font-bold text-sm transition">🚀 入驻数据空间</button>
         <div id="nav-status" class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs">
           <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
           <span class="text-gray-400">平台在线</span>
@@ -1016,6 +1017,63 @@
       ;(cats.categories||[]).forEach(c => {
         if (!c.parent_id) sel.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>'
       })
+    }
+
+    // ========== REGISTER MODAL ==========
+    let currentRegTab = null
+
+    function showRegisterModal() {
+      document.getElementById('register-modal').classList.add('active')
+      document.getElementById('reg-success').classList.add('hidden')
+      document.getElementById('reg-form-agent').classList.add('hidden')
+      document.getElementById('reg-form-manual').classList.add('hidden')
+      currentRegTab = null
+    }
+
+    function closeRegisterModal() {
+      document.getElementById('register-modal').classList.remove('active')
+    }
+
+    function switchRegTab(tab) {
+      currentRegTab = tab
+      document.getElementById('reg-form-agent').classList.toggle('hidden', tab !== 'agent')
+      document.getElementById('reg-form-manual').classList.toggle('hidden', tab !== 'manual')
+      document.getElementById('reg-success').classList.add('hidden')
+    }
+
+    async function submitAgentRegister() {
+      const agentId = document.getElementById('reg-agent-id').value.trim()
+      if (!agentId) return alert('请输入 Agent ID')
+      const r = await fetch('/api/catalog/register', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({register_type: 'agent', agent_id: agentId, company_name: agentId, contact_name: 'Agent'})
+      }).then(r => r.json()).catch(() => null)
+      if (!r) return alert('网络错误，请重试')
+      if (r.error) return alert(r.error)
+      document.getElementById('reg-success-title').textContent = '注册成功！'
+      document.getElementById('reg-success-msg').textContent = '数据空间已自动创建，可以开始发布产品目录了'
+      document.getElementById('reg-form-agent').classList.add('hidden')
+      document.getElementById('reg-success').classList.remove('hidden')
+    }
+
+    async function submitManualRegister() {
+      const company = document.getElementById('reg-company').value.trim()
+      const contact = document.getElementById('reg-contact').value.trim()
+      const contactInfo = document.getElementById('reg-contact-info').value.trim()
+      const desc = document.getElementById('reg-desc').value.trim()
+      if (!company || !contact) return alert('请填写必填项：公司名称、联系人')
+      const r = await fetch('/api/catalog/register', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({register_type: 'manual', company_name: company, contact_name: contact, contact_info: contactInfo, description: desc})
+      }).then(r => r.json()).catch(() => null)
+      if (!r) return alert('网络错误，请重试')
+      if (r.error) return alert(r.error)
+      document.getElementById('reg-success-title').textContent = '申请已提交！'
+      document.getElementById('reg-success-msg').textContent = r.message
+      document.getElementById('reg-form-manual').classList.add('hidden')
+      document.getElementById('reg-success').classList.remove('hidden')
     }
   </script>
 </body>
