@@ -10,9 +10,16 @@ import conversationsRouter from './routes/conversations.js'
 import ordersRouter from './routes/orders.js'
 import marketRouter from './routes/market.js'
 import catalogRouter from './routes/catalog.js'
+import consumersRouter from './routes/consumers.js'
 
 const PORT = 3000
 const app = express()
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+app.use(express.static(join(__dirname, '..', '..', 'frontend')))
+
 
 app.use(express.json())
 
@@ -32,6 +39,7 @@ app.use('/api/negotiations', negotiationsRouter)
 app.use('/api/conversations', conversationsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/market', marketRouter)
+app.use('/api/consumers', consumersRouter)
 app.use('/api/catalog', catalogRouter)
 
 // Health

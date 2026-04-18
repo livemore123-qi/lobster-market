@@ -20,10 +20,11 @@ router.post('/register', (req, res) => {
   }
 
   const id = genId('agent_')
+  const role = 'agent'
   db.prepare(`
-    INSERT INTO agents (id, agent_name, owner_name, meta, public_key)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(agentId, agent_name, owner_name, meta || '', public_key)
+    INSERT INTO agents (id, agent_name, owner_name, role, meta, public_key)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(agentId, agent_name, owner_name, role, meta || '', public_key)
 
   res.json({
     agent_id: agentId,

@@ -1,4 +1,11 @@
 import { Router } from 'express'
+
+// Migration: add role column if not exists
+try {
+  db.exec(`ALTER TABLE registration_requests ADD COLUMN role TEXT DEFAULT 'manual' CHECK(role IN ('agent','merchant','manual','consumer'))`)
+} catch(e) {}
+
+
 import db from '../db.js'
 import { genId } from '../crypto.js'
 
@@ -58,7 +65,16 @@ router.get('/dataspaces/:id', (req, res) => {
 
 // Create entry
 router.post('/entries', (req, res) => {
+  const agentId = req.headers['x-agent-id']
   const { dataspace_id, title, summary, content_md, category, tags, access_policy, access_token, api_endpoint, price } = req.body
+  
+  // Permission check: must have X-Agent-ID header
+  if (!agentId) return res.status(401).json({ error: '需要X-Agent-ID头才能发布产品目录' })
+  
+  // Check dataspace ownership
+  const ds = db.prepare('SELECT owner_role FROM dataspaces WHERE id = ? AND (agent_id = ? OR owner_role IN (?, ?))').get(dataspace_id, agentId, 'agent', 'merchant')
+  if (!ds) return res.status(403).json({ error: '无权在此数据空间发布内容' })
+  
   if (!dataspace_id || !title || !content_md) {
     return res.status(400).json({ error: '缺少必填字段：dataspace_id, title, content_md' })
   }
@@ -216,16 +232,16 @@ router.post('/register', (req, res) => {
   
   if (register_type === 'agent' && agent_id) {
     const stmt = db.prepare(`
-      INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type, agent_id, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'approved')
+      INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type, agent_id, role, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'agent', 'approved')
     `)
     stmt.run(id, company_name, contact_name, contact_info || '', description || '', register_type, agent_id)
     
     // Create dataspace
     const dsId = genId('ds')
     const ds = db.prepare(`
-      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id, tags)
-      VALUES (?, ?, ?, ?, ?, 'public', ?, '[]')
+      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, owner_role, agent_id, tags)
+      VALUES (?, ?, ?, ?, ?, 'public', 'agent', ?, '[]')
     `)
     ds.run(dsId, company_name, description || '', contact_name, contact_info || '', null)
     
@@ -245,10 +261,10 @@ router.post('/register', (req, res) => {
     return res.json({ id, status: 'approved', dataspace_id: dsId, agent_created: !existingAgent, message: '注册成功！您的龙虾已入驻数据空间' })
   } else {
     const stmt = db.prepare(`
-      INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type, role)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `)
-    stmt.run(id, company_name, contact_name, contact_info || '', description || '', register_type || 'manual')
+    stmt.run(id, company_name, contact_name, contact_info || '', description || '', register_type || 'manual', 'merchant')
     return res.json({ id, status: 'pending', message: '申请已提交，请等待人工审核' })
   }
 })
@@ -276,9 +292,9 @@ router.put('/registrations/:id', (req, res) => {
   if (status === 'approved') {
     const dsId = genId('ds')
     db.prepare(`
-      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id, tags)
-      VALUES (?, ?, ?, ?, ?, 'public', ?, '[]')
-    `).run(dsId, existing.company_name, existing.description, existing.contact_name, existing.contact_info, null)
+      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, owner_role, agent_id, tags)
+      VALUES (?, ?, ?, ?, ?, 'public', ?, ?, '[]')
+    `).run(dsId, existing.company_name, existing.description, existing.contact_name, existing.contact_info, existing.role || 'merchant', null, '[]')
     return res.json({ success: true, dataspace_id: dsId })
   }
   

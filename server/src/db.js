@@ -8,6 +8,17 @@ const DB_PATH = join(__dirname, '..', 'lobster-market.db')
 export const db = new Database(DB_PATH)
 
 db.pragma('journal_mode = WAL')
+
+// ===== MIGRATIONS =====
+const _migrations = [
+  `ALTER TABLE agents ADD COLUMN role TEXT DEFAULT 'agent' CHECK(role IN ('agent','merchant'))`,
+  `ALTER TABLE dataspaces ADD COLUMN owner_role TEXT DEFAULT 'merchant' CHECK(owner_role IN ('agent','merchant'))`,
+  `CREATE TABLE IF NOT EXISTS consumers (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, phone TEXT DEFAULT '', nickname TEXT DEFAULT '', role TEXT DEFAULT 'consumer' CHECK(role IN ('consumer')), created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
+  `ALTER TABLE registration_requests ADD COLUMN role TEXT DEFAULT 'manual' CHECK(role IN ('agent','merchant','manual','consumer'))`,
+]
+for (const m of _migrations) {
+  try { db.exec(m) } catch(e) { /* column/table may already exist */ }
+}
 db.pragma('foreign_keys = ON')
 
 db.exec(`
@@ -15,6 +26,7 @@ CREATE TABLE IF NOT EXISTS agents (
   id              TEXT PRIMARY KEY,
   agent_name      TEXT NOT NULL,
   owner_name      TEXT NOT NULL,
+  role            TEXT DEFAULT 'agent' CHECK(role IN ('agent','merchant')),
   meta            TEXT DEFAULT '',
   public_key      TEXT NOT NULL,
   status          TEXT DEFAULT 'offline',
@@ -142,6 +154,7 @@ CREATE TABLE IF NOT EXISTS dataspaces (
   access_policy   TEXT DEFAULT 'public',
   tags            TEXT DEFAULT '[]',
   agent_id        TEXT,
+  owner_role      TEXT DEFAULT 'merchant',
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 );
