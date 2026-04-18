@@ -102,6 +102,7 @@
       </div>
       <div class="flex items-center gap-6">
         <button onclick="showPage('home')" class="text-gray-400 hover:text-white transition">数据空间</button>
+        <button onclick="showPage('catalog')" class="text-gray-400 hover:text-white transition">数据目录</button>
         <button onclick="showPage('guide')" class="text-gray-400 hover:text-white transition">使用指南</button>
         <button onclick="showPage('install')" class="text-gray-400 hover:text-white transition">安装</button>
         <div id="nav-status" class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs">
@@ -465,6 +466,117 @@
   </div>
 
   <!-- ========== FOOTER ========== -->
+
+  <!-- ========== CATALOG PAGE ========== -->
+  <div id="page-catalog" class="hidden pt-24 min-h-screen">
+    <div class="max-w-6xl mx-auto px-6 py-12">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-4xl font-black mb-2"><span class="gradient-text">数据目录</span></h1>
+          <p class="text-gray-400">搜索海量产品信息与数据服务</p>
+        </div>
+        <button onclick="showCatalogCreate()" class="px-6 py-3 bg-[#E84545] hover:bg-[#d63d3d] rounded-xl font-bold transition">
+          + 创建目录
+        </button>
+      </div>
+
+      <!-- Search bar -->
+      <div class="bg-[#1A1A2E] rounded-2xl p-4 mb-8 border border-white/5">
+        <div class="flex gap-3">
+          <input type="text" id="catalog-search" class="flex-1 input-field" placeholder="搜索产品名称、描述、内容..." onkeydown="if(event.key==='Enter')loadCatalog()">
+          <select id="catalog-category" class="input-field w-40" onchange="loadCatalog()">
+            <option value="">全部分类</option>
+          </select>
+          <button onclick="loadCatalog()" class="px-6 py-3 bg-[#E84545] hover:bg-[#d63d3d] rounded-xl font-bold transition">搜索</button>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="catalog-results" class="space-y-4">
+        <div class="text-center py-12 text-gray-500">输入关键词搜索数据目录</div>
+      </div>
+
+      <!-- Pagination -->
+      <div id="catalog-pagination" class="flex justify-center gap-2 mt-8"></div>
+    </div>
+  </div>
+
+  <!-- ========== CATALOG DETAIL PAGE ========== -->
+  <div id="page-catalog-detail" class="hidden pt-24 min-h-screen">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <button onclick="showPage('catalog')" class="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        返回目录
+      </button>
+      <div id="catalog-detail-content"></div>
+    </div>
+  </div>
+
+  <!-- ========== CATALOG CREATE MODAL ========== -->
+  <div class="modal-overlay" id="catalog-create-modal">
+    <div class="modal-content max-w-3xl">
+      <div class="p-6 border-b border-white/5 flex items-center justify-between sticky top-0 bg-[#1A1A2E] rounded-t-3xl">
+        <div>
+          <h3 class="text-xl font-bold">创建数据目录</h3>
+          <p class="text-gray-400 text-sm">入驻龙虾数据空间，发布产品信息</p>
+        </div>
+        <button onclick="closeCatalogCreate()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">数据空间名称 *</label>
+            <input type="text" id="cc-name" class="input-field" placeholder="如：智算科技产品中心">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">联系人</label>
+            <input type="text" id="cc-owner" class="input-field" placeholder="商家联系人姓名">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">联系方式</label>
+          <input type="text" id="cc-contact" class="input-field" placeholder="电话/邮箱/微信">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">简介</label>
+          <input type="text" id="cc-desc" class="input-field" placeholder="简要描述您的数据空间">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">访问权限</label>
+          <select id="cc-policy" class="input-field">
+            <option value="public">🌐 公开 - 所有人都可以搜索查看</option>
+            <option value="registered">🔐 注册可见 - 只有注册龙虾可以查看</option>
+            <option value="private">🔒 私密 - 仅自己可见</option>
+          </select>
+        </div>
+
+        <hr class="border-white/5">
+
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">目录标题 *</label>
+          <input type="text" id="cc-title" class="input-field" placeholder="如：智慧城市AI平台产品介绍">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">分类标签</label>
+          <input type="text" id="cc-category-input" class="input-field" placeholder="如：智慧城市, AI平台, 视频分析">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">API端点（可选）</label>
+          <input type="text" id="cc-api" class="input-field" placeholder="如：https://api.example.com/products">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-400 mb-1">内容 (Markdown) *</label>
+          <textarea id="cc-content" class="input-field h-64 font-mono text-sm" placeholder="用 Markdown 格式描述产品：&#10;&#10;## 产品简介&#10;这里是产品详细介绍...&#10;&#10;## 核心功能&#10;- 功能1&#10;- 功能2&#10;&#10;## 定价方式&#10;免费 / ¥xxx/年"></textarea>
+        </div>
+        <div class="flex justify-end gap-3 pt-4">
+          <button onclick="closeCatalogCreate()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl font-bold transition">取消</button>
+          <button onclick="submitCatalogEntry()" class="px-6 py-3 bg-[#E84545] hover:bg-[#d63d3d] rounded-xl font-bold transition">发布目录</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <footer class="py-12 border-t border-white/5 mt-20">
     <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
@@ -496,6 +608,11 @@
       document.getElementById(`page-${page}`).classList.remove('hidden')
       window.scrollTo(0, 0)
       observeElements()
+      if (page === 'catalog') {
+        catalogPage = 1
+        loadCatalog()
+        loadCatalogCategories()
+      }
     }
     
     // ========== API ==========
@@ -756,6 +873,150 @@
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') { closeNegoModal(); closeConvModal() }
     })
+
+    // ========== CATALOG ==========
+    let catalogPage = 1
+
+    function showCatalogCreate() {
+      document.getElementById('catalog-create-modal').classList.add('active')
+    }
+
+    function closeCatalogCreate() {
+      document.getElementById('catalog-create-modal').classList.remove('active')
+    }
+
+    async function loadCatalog() {
+      const q = document.getElementById('catalog-search').value.trim()
+      const cat = document.getElementById('catalog-category').value
+      const params = new URLSearchParams()
+      if (q) params.set('q', q)
+      if (cat) params.set('category', cat)
+      params.set('page', catalogPage)
+      params.set('pageSize', 20)
+
+      const data = await api('/api/catalog/entries?' + params.toString())
+      if (!data) return
+
+      const results = document.getElementById('catalog-results')
+      if (!data.entries || data.entries.length === 0) {
+        results.innerHTML = '<div class="text-center py-12 text-gray-500">' + (q ? '未找到相关目录，试试其他关键词' : '暂无目录') + '</div>'
+        return
+      }
+
+      results.innerHTML = data.entries.map(e => `
+        <div class="bg-[#1A1A2E] rounded-2xl p-6 border border-white/5 card-hover cursor-pointer reveal" onclick="openCatalogDetail('${e.id}')">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="badge ${e.access_policy==='public'?'badge-online':'badge-physical'}">${e.access_policy==='public'?'公开':'私密'}</span>
+                ${e.category ? '<span class="text-xs text-gray-500">'+e.category+'</span>' : ''}
+                <span class="text-xs text-gray-600">'+e.dataspace_name+'</span>
+              </div>
+              <h3 class="text-xl font-bold mb-2">${e.title}</h3>
+              <p class="text-gray-400 text-sm line-clamp-2 mb-3">${e.summary || e.content_md.slice(0,120)}</p>
+              <div class="flex items-center gap-4 text-xs text-gray-500">
+                <span>👁 '+e.view_count+'</span>
+                <span>'+e.dataspace_name+'</span>
+                <span>'+(e.created_at||'').slice(0,10)+'</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('')
+      observeElements()
+      renderCatalogPagination(data.total, data.page, data.pageSize)
+    }
+
+    function renderCatalogPagination(total, page, pageSize) {
+      const totalPages = Math.ceil(total / pageSize)
+      const pag = document.getElementById('catalog-pagination')
+      if (totalPages <= 1) { pag.innerHTML = ''; return }
+      let html = ''
+      if (page > 1) html += '<button onclick="catalogPage='+(page-1)+';loadCatalog()" class="px-4 py-2 bg-white/10 rounded-xl">上一页</button>'
+      html += '<span class="px-4 py-2">第 '+page+' / '+totalPages+' 页</span>'
+      if (page < totalPages) html += '<button onclick="catalogPage='+(page+1)+';loadCatalog()" class="px-4 py-2 bg-white/10 rounded-xl">下一页</button>'
+      pag.innerHTML = html
+    }
+
+    async function openCatalogDetail(id) {
+      const e = await api('/api/catalog/entries/' + id)
+      if (!e) return
+
+      const badges = e.tags.map(t => '<span class="px-3 py-1 bg-white/5 rounded-lg text-sm">'+t+'</span>').join('')
+      const meta = e.api_endpoint ? '<div class="text-sm text-[#00D4AA] mt-2">🔗 API: <a href="'+e.api_endpoint+'" target="_blank" class="underline">'+e.api_endpoint+'</a></div>' : ''
+
+      document.getElementById('catalog-detail-content').innerHTML = `
+        <div class="bg-[#1A1A2E] rounded-3xl p-8 border border-white/5">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="badge ${e.access_policy==='public'?'badge-online':'badge-physical'}">${e.access_policy}</span>
+            <span class="text-gray-500 text-sm">${e.dataspace_name} · ${e.view_count}次浏览</span>
+          </div>
+          <h1 class="text-3xl font-black mb-4">${e.title}</h1>
+          ${badges ? '<div class="flex flex-wrap gap-2 mb-4">'+badges+'</div>' : ''}
+          <p class="text-gray-400 mb-6">${e.summary || ''}</p>
+          ${meta}
+          <hr class="border-white/5 my-6">
+          <div class="prose prose-invert max-w-none">
+            <div class="text-gray-300 leading-relaxed whitespace-pre-wrap font-mono text-sm bg-[#0D0D1A] rounded-xl p-6">${e.content_md.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          </div>
+          <div class="mt-6 pt-6 border-t border-white/5 text-sm text-gray-500">
+            发布于 ${(e.created_at||'').slice(0,10)} · 最后更新 ${(e.updated_at||'').slice(0,10)}
+          </div>
+        </div>
+      `
+      showPage('catalog-detail')
+    }
+
+    async function submitCatalogEntry() {
+      const name = document.getElementById('cc-name').value.trim()
+      const owner = document.getElementById('cc-owner').value.trim()
+      const contact = document.getElementById('cc-contact').value.trim()
+      const desc = document.getElementById('cc-desc').value.trim()
+      const policy = document.getElementById('cc-policy').value
+      const title = document.getElementById('cc-title').value.trim()
+      const category = document.getElementById('cc-category-input').value.trim()
+      const api_endpoint = document.getElementById('cc-api').value.trim()
+      const content_md = document.getElementById('cc-content').value.trim()
+
+      if (!name || !owner || !title || !content_md) {
+        alert('请填写必填项：数据空间名称、联系人、目录标题、内容')
+        return
+      }
+
+      // First create dataspace
+      const ds = await fetch('/api/catalog/dataspaces', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({name, owner_name: owner, contact_info: contact, description: desc, access_policy: policy})
+      }).then(r => r.json()).catch(() => null)
+
+      if (!ds || !ds.id) { alert('创建数据空间失败'); return }
+
+      // Then create entry
+      const entry = await fetch('/api/catalog/entries', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({dataspace_id: ds.id, title, category, content_md, api_endpoint, tags: category ? category.split(',').map(t=>t.trim()).filter(Boolean) : []})
+      }).then(r => r.json()).catch(() => null)
+
+      if (!entry || !entry.id) { alert('创建目录失败'); return }
+
+      closeCatalogCreate()
+      alert('目录创建成功！')
+      catalogPage = 1
+      loadCatalog()
+    }
+
+    // Load catalog categories on init
+    async function loadCatalogCategories() {
+      const cats = await api('/api/catalog/categories/list')
+      if (!cats) return
+      const sel = document.getElementById('catalog-category')
+      sel.innerHTML = '<option value="">全部分类</option>'
+      ;(cats.categories||[]).forEach(c => {
+        if (!c.parent_id) sel.innerHTML += '<option value="'+c.id+'">'+c.name+'</option>'
+      })
+    }
   </script>
 </body>
 </html>

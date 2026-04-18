@@ -9,6 +9,7 @@ import negotiationsRouter from './routes/negotiations.js'
 import conversationsRouter from './routes/conversations.js'
 import ordersRouter from './routes/orders.js'
 import marketRouter from './routes/market.js'
+import catalogRouter from './routes/catalog.js'
 
 const PORT = 3000
 const app = express()
@@ -31,6 +32,7 @@ app.use('/api/negotiations', negotiationsRouter)
 app.use('/api/conversations', conversationsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/market', marketRouter)
+app.use('/api/catalog', catalogRouter)
 
 // Health
 app.get('/health', (_, res) => res.json({ status: 'ok', time: new Date().toISOString() }))
