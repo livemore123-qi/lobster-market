@@ -1082,7 +1082,7 @@
     }
 
     // ========== REGISTER MODAL ==========
-    function submitAgentRegister() {
+    async function submitAgentRegister() {
       const agentId = document.getElementById('reg-agent-id').value.trim()
       if (!agentId) return alert('请输入 Agent ID')
       const r = await fetch('/api/catalog/register', {
