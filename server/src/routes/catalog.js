@@ -223,10 +223,10 @@ router.post('/register', (req, res) => {
     
     const dsId = genId('ds')
     const ds = db.prepare(`
-      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id)
-      VALUES (?, ?, ?, ?, ?, 'public', ?)
+      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id, tags)
+      VALUES (?, ?, ?, ?, ?, 'public', ?, '[]')
     `)
-    ds.run(dsId, company_name, description || '', contact_name, contact_info || '', agent_id)
+    ds.run(dsId, company_name, description || '', contact_name, contact_info || '', null)
     
     return res.json({ id, status: 'approved', dataspace_id: dsId, message: '注册成功！您的数据空间已创建' })
   } else {
@@ -262,9 +262,9 @@ router.put('/registrations/:id', (req, res) => {
   if (status === 'approved') {
     const dsId = genId('ds')
     db.prepare(`
-      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id)
-      VALUES (?, ?, ?, ?, ?, 'public', ?)
-    `).run(dsId, existing.company_name, existing.description, existing.contact_name, existing.contact_info, existing.agent_id || null)
+      INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id, tags)
+      VALUES (?, ?, ?, ?, ?, 'public', ?, '[]')
+    `).run(dsId, existing.company_name, existing.description, existing.contact_name, existing.contact_info, null)
     return res.json({ success: true, dataspace_id: dsId })
   }
   

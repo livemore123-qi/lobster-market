@@ -1036,6 +1036,15 @@
 
     function switchRegTab(tab) {
       currentRegTab = tab
+      // Update card styles
+      const cardAgent = document.getElementById('reg-card-agent')
+      const cardManual = document.getElementById('reg-card-manual')
+      if (cardAgent) {
+        cardAgent.style.borderColor = tab === 'agent' ? 'rgba(0,212,170,0.6)' : 'rgba(255,255,255,0.1)'
+      }
+      if (cardManual) {
+        cardManual.style.borderColor = tab === 'manual' ? 'rgba(232,69,69,0.5)' : 'rgba(255,255,255,0.1)'
+      }
       document.getElementById('reg-form-agent').classList.toggle('hidden', tab !== 'agent')
       document.getElementById('reg-form-manual').classList.toggle('hidden', tab !== 'manual')
       document.getElementById('reg-success').classList.add('hidden')
