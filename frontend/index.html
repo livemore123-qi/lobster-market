@@ -1121,10 +1121,7 @@
     function showRegisterModal() {
       document.getElementById('register-modal').classList.add('active')
       document.getElementById('reg-success').classList.add('hidden')
-      document.getElementById('reg-form-agent').classList.add('hidden')
-      document.getElementById('reg-form-manual').classList.add('hidden')
-      currentRegTab = null
-      switchRegTab(null)
+      switchRegTab('agent')
     }
     function closeRegisterModal() {
       document.getElementById('register-modal').classList.remove('active')
