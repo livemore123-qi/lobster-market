@@ -100,12 +100,12 @@
         <span class="text-3xl">🦞</span>
         <span class="font-bold text-xl">龙虾数据空间</span>
       </div>
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-3">
         <button onclick="showPage('home')" class="text-gray-400 hover:text-white transition">数据空间</button>
         <button onclick="showPage('catalog')" class="text-gray-400 hover:text-white transition">数据目录</button>
         <button onclick="showPage('guide')" class="text-gray-400 hover:text-white transition">使用指南</button>
         <button onclick="showPage('install')" class="text-gray-400 hover:text-white transition">安装</button>
-        <button onclick="showRegisterModal()" class="px-4 py-2 bg-[#E84545] hover:bg-[#d63d3d] rounded-full font-bold text-sm transition">🚀 入驻数据空间</button>
+        <button onclick="showRegisterModal()" class="px-3 py-1.5 bg-[#E84545] hover:bg-[#d63d3d] rounded-full font-bold text-xs transition flex-shrink-0">🚀 入驻</button>
         <div id="nav-status" class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs">
           <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
           <span class="text-gray-400">平台在线</span>
@@ -578,7 +578,69 @@
       </div>
     </div>
   </div>
-  <footer class="py-12 border-t border-white/5 mt-20">
+  
+  <div class="modal-overlay" id="register-modal">
+    <div class="modal-content max-w-xl">
+      <div class="p-6 border-b border-white/5 flex items-center justify-between">
+        <div>
+          <h3 class="text-xl font-bold">入驻龙虾数据空间</h3>
+          <p class="text-gray-400 text-sm mt-1">选择适合您的入驻方式</p>
+        </div>
+        <button onclick="closeRegisterModal()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div id="reg-card-agent" class="bg-[#0D0D1A] rounded-2xl p-5 border-2 border-[#00D4AA]/30 cursor-pointer hover:border-[#00D4AA]/60 transition" onclick="switchRegTab('agent')">
+            <div class="text-3xl mb-3">🦞</div>
+            <div class="font-bold mb-1">龙虾自主注册</div>
+            <div class="text-xs text-gray-500">已安装龙虾客户端</div>
+            <div class="mt-3 text-xs text-[#00D4AA]">✅ 自动审核，即时生效</div>
+          </div>
+          <div id="reg-card-manual" class="bg-[#0D0D1A] rounded-2xl p-5 border-2 border-white/10 cursor-pointer hover:border-[#E84545]/50 transition" onclick="switchRegTab('manual')">
+            <div class="text-3xl mb-3">👤</div>
+            <div class="font-bold mb-1">人工注册</div>
+            <div class="text-xs text-gray-500">商家/企业用户</div>
+            <div class="mt-3 text-xs text-gray-400">⏱ 人工审核，1-2工作日</div>
+          </div>
+        </div>
+        <div id="reg-form-agent" class="hidden space-y-4">
+          <div class="bg-[#1A1A2E] rounded-xl p-4 border border-[#00D4AA]/20">
+            <p class="text-gray-400 text-sm mb-3">输入您的 Agent ID，系统自动审核并创建数据空间。</p>
+            <input type="text" id="reg-agent-id" class="input-field" placeholder="如：myagent@hostname">
+            <button onclick="submitAgentRegister()" class="w-full mt-3 py-3 bg-[#00D4AA] hover:bg-[#00b894] text-black rounded-xl font-bold transition">立即注册</button>
+          </div>
+        </div>
+        <div id="reg-form-manual" class="hidden space-y-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">公司/商家名称 *</label>
+            <input type="text" id="reg-company" class="input-field" placeholder="请输入公司全称">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">联系人姓名 *</label>
+            <input type="text" id="reg-contact" class="input-field" placeholder="请输入联系人姓名">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">联系方式</label>
+            <input type="text" id="reg-contact-info" class="input-field" placeholder="电话 / 邮箱 / 微信">
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-1">公司简介</label>
+            <textarea id="reg-desc" class="input-field h-20 resize-none" placeholder="简要描述您的业务范围和产品方向"></textarea>
+          </div>
+          <button onclick="submitManualRegister()" class="w-full py-3 bg-[#E84545] hover:bg-[#d63d3d] rounded-xl font-bold transition">提交入驻申请</button>
+        </div>
+        <div id="reg-success" class="hidden text-center py-8">
+          <div class="text-5xl mb-4">✅</div>
+          <div class="text-xl font-bold mb-2" id="reg-success-title">操作完成</div>
+          <p class="text-gray-400" id="reg-success-msg"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<footer class="py-12 border-t border-white/5 mt-20">
     <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">🦞</span>
@@ -1020,37 +1082,7 @@
     }
 
     // ========== REGISTER MODAL ==========
-    let currentRegTab = null
-
-    function showRegisterModal() {
-      document.getElementById('register-modal').classList.add('active')
-      document.getElementById('reg-success').classList.add('hidden')
-      document.getElementById('reg-form-agent').classList.add('hidden')
-      document.getElementById('reg-form-manual').classList.add('hidden')
-      currentRegTab = null
-    }
-
-    function closeRegisterModal() {
-      document.getElementById('register-modal').classList.remove('active')
-    }
-
-    function switchRegTab(tab) {
-      currentRegTab = tab
-      // Update card styles
-      const cardAgent = document.getElementById('reg-card-agent')
-      const cardManual = document.getElementById('reg-card-manual')
-      if (cardAgent) {
-        cardAgent.style.borderColor = tab === 'agent' ? 'rgba(0,212,170,0.6)' : 'rgba(255,255,255,0.1)'
-      }
-      if (cardManual) {
-        cardManual.style.borderColor = tab === 'manual' ? 'rgba(232,69,69,0.5)' : 'rgba(255,255,255,0.1)'
-      }
-      document.getElementById('reg-form-agent').classList.toggle('hidden', tab !== 'agent')
-      document.getElementById('reg-form-manual').classList.toggle('hidden', tab !== 'manual')
-      document.getElementById('reg-success').classList.add('hidden')
-    }
-
-    async function submitAgentRegister() {
+    function submitAgentRegister() {
       const agentId = document.getElementById('reg-agent-id').value.trim()
       if (!agentId) return alert('请输入 Agent ID')
       const r = await fetch('/api/catalog/register', {
@@ -1079,6 +1111,59 @@
       }).then(r => r.json()).catch(() => null)
       if (!r) return alert('网络错误，请重试')
       if (r.error) return alert(r.error)
+      document.getElementById('reg-success-title').textContent = '申请已提交！'
+      document.getElementById('reg-success-msg').textContent = r.message
+      document.getElementById('reg-form-manual').classList.add('hidden')
+      document.getElementById('reg-success').classList.remove('hidden')
+    }
+
+    let currentRegTab = null
+    function showRegisterModal() {
+      document.getElementById('register-modal').classList.add('active')
+      document.getElementById('reg-success').classList.add('hidden')
+      document.getElementById('reg-form-agent').classList.add('hidden')
+      document.getElementById('reg-form-manual').classList.add('hidden')
+      currentRegTab = null
+      switchRegTab(null)
+    }
+    function closeRegisterModal() {
+      document.getElementById('register-modal').classList.remove('active')
+    }
+    function switchRegTab(tab) {
+      if (tab === null) {
+        document.getElementById('reg-card-agent').style.borderColor = 'rgba(255,255,255,0.1)'
+        document.getElementById('reg-card-manual').style.borderColor = 'rgba(255,255,255,0.1)'
+        return
+      }
+      currentRegTab = tab
+      var cardAgent = document.getElementById('reg-card-agent')
+      var cardManual = document.getElementById('reg-card-manual')
+      if (cardAgent) cardAgent.style.borderColor = tab === 'agent' ? 'rgba(0,212,170,0.6)' : 'rgba(255,255,255,0.1)'
+      if (cardManual) cardManual.style.borderColor = tab === 'manual' ? 'rgba(232,69,69,0.5)' : 'rgba(255,255,255,0.1)'
+      document.getElementById('reg-form-agent').classList.toggle('hidden', tab !== 'agent')
+      document.getElementById('reg-form-manual').classList.toggle('hidden', tab !== 'manual')
+      document.getElementById('reg-success').classList.add('hidden')
+    }
+    async function submitAgentRegister() {
+      var agentId = document.getElementById('reg-agent-id').value.trim()
+      if (!agentId) { alert('请输入 Agent ID'); return }
+      var r = await fetch('/api/catalog/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({register_type:'agent',agent_id:agentId,company_name:agentId,contact_name:'Agent'})}).then(function(res){return res.json()}).catch(function(){return null})
+      if (!r) { alert('网络错误'); return }
+      if (r.error) { alert(r.error); return }
+      document.getElementById('reg-success-title').textContent = '注册成功！'
+      document.getElementById('reg-success-msg').textContent = '数据空间已创建，可以开始发布产品目录'
+      document.getElementById('reg-form-agent').classList.add('hidden')
+      document.getElementById('reg-success').classList.remove('hidden')
+    }
+    async function submitManualRegister() {
+      var company = document.getElementById('reg-company').value.trim()
+      var contact = document.getElementById('reg-contact').value.trim()
+      var contactInfo = document.getElementById('reg-contact-info').value.trim()
+      var desc = document.getElementById('reg-desc').value.trim()
+      if (!company || !contact) { alert('请填写必填项'); return }
+      var r = await fetch('/api/catalog/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({register_type:'manual',company_name:company,contact_name:contact,contact_info:contactInfo,description:desc})}).then(function(res){return res.json()}).catch(function(){return null})
+      if (!r) { alert('网络错误'); return }
+      if (r.error) { alert(r.error); return }
       document.getElementById('reg-success-title').textContent = '申请已提交！'
       document.getElementById('reg-success-msg').textContent = r.message
       document.getElementById('reg-form-manual').classList.add('hidden')
