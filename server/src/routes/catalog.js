@@ -221,6 +221,7 @@ router.post('/register', (req, res) => {
     `)
     stmt.run(id, company_name, contact_name, contact_info || '', description || '', register_type, agent_id)
     
+    // Create dataspace
     const dsId = genId('ds')
     const ds = db.prepare(`
       INSERT INTO dataspaces (id, name, description, owner_name, contact_info, access_policy, agent_id, tags)
@@ -228,7 +229,20 @@ router.post('/register', (req, res) => {
     `)
     ds.run(dsId, company_name, description || '', contact_name, contact_info || '', null)
     
-    return res.json({ id, status: 'approved', dataspace_id: dsId, message: '注册成功！您的数据空间已创建' })
+    // Also create agent record in agents table
+    const existingAgent = db.prepare('SELECT id FROM agents WHERE id = ?').get(agent_id)
+    if (!existingAgent) {
+      // Parse username@hostname from agent_id
+      const parts = agent_id.split('@')
+      const username = parts[0] || agent_id
+      const hostname = parts[1] || 'unknown'
+      db.prepare(`
+        INSERT INTO agents (id, agent_name, owner_name, meta, public_key, status)
+        VALUES (?, ?, ?, ?, ?, 'online')
+      `).run(agent_id, company_name, contact_name, JSON.stringify({registered_via: 'catalog_register'}), 'browser-registered:' + agent_id)
+    }
+    
+    return res.json({ id, status: 'approved', dataspace_id: dsId, agent_created: !existingAgent, message: '注册成功！您的龙虾已入驻数据空间' })
   } else {
     const stmt = db.prepare(`
       INSERT INTO registration_requests (id, company_name, contact_name, contact_info, description, register_type)
