@@ -252,7 +252,7 @@ async function loadDashboard() {
       api('/registrations'),
       api('/dataspaces'),
       api('/entries'),
-      fetch('/api/market/agents').then(r=>r.json()).catch(()=>({agents:[]}))
+      fetch('/api/agents').then(r=>r.json()).catch(()=>({agents:[]}))
     ])
     const pending = regs.registrations.filter(r=>r.status==='pending').length
     document.getElementById('stat-pending').textContent = pending
@@ -411,7 +411,7 @@ function closeDetail() {
 
 // ── Agents ──
 async function loadAgents() {
-  const data = await fetch('/api/market/agents').then(r=>r.json()).catch(()=>({agents:[]}))
+  const data = await fetch('/api/agents').then(r=>r.json()).catch(()=>({agents:[]}))
   renderAgents(data.agents || [])
 }
 
