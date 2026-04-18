@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>龙虾数据空间 - 管理后台</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'PingFang SC','Microsoft YaHei',sans-serif; background:#0a0a14; color:#fff; min-height:100vh; }
+.dark-bg { background:#0a0a14; }
+
+/* Login */
+#login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; }
+.login-box { background:#13132a; border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:48px 40px; width:360px; text-align:center; }
+.login-box h1 { font-size:24px; font-weight:900; margin-bottom:8px; }
+.login-box p { color:#888; font-size:14px; margin-bottom:32px; }
+.login-box input { width:100%; padding:14px 16px; background:#0a0a14; border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size:14px; outline:none; margin-bottom:12px; }
+.login-box input:focus { border-color:#E84545; }
+.login-box button { width:100%; padding:14px; background:#E84545; border:none; border-radius:12px; color:#fff; font-size:16px; font-weight:bold; cursor:pointer; margin-top:8px; }
+.login-box button:hover { background:#d63d3d; }
+.login-error { color:#E84545; font-size:13px; margin-top:12px; display:none; }
+
+/* Admin Layout */
+#admin-screen { display:none; min-height:100vh; }
+.admin-header { background:#0f0f22; border-bottom:1px solid rgba(255,255,255,0.06); padding:0 32px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+.admin-header .logo { display:flex; align-items:center; gap:10px; font-size:18px; font-weight:bold; }
+.admin-header .logo span { font-size:28px; }
+.admin-header .header-right { display:flex; align-items:center; gap:16px; }
+.admin-header .logout-btn { background:rgba(255,255,255,0.1); border:none; border-radius:8px; padding:8px 16px; color:#fff; cursor:pointer; font-size:13px; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; padding:20px 32px 0; background:#0f0f22; border-bottom:1px solid rgba(255,255,255,0.06); overflow-x:auto; }
+.tab { padding:10px 20px; background:transparent; border:none; color:#888; font-size:14px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; }
+.tab.active { color:#fff; border-bottom-color:#E84545; }
+.tab:hover { color:#fff; }
+
+/* Content */
+.content { padding:28px 32px; max-width:1400px; margin:0 auto; }
+
+/* Stats */
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+.stat-card { background:#13132a; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:20px 24px; }
+.stat-card .label { color:#888; font-size:13px; margin-bottom:8px; }
+.stat-card .value { font-size:32px; font-weight:900; color:#E84545; }
+.stat-card .sub { color:#555; font-size:12px; margin-top:4px; }
+
+/* Section */
+.section { background:#13132a; border:1px solid rgba(255,255,255,0.08); border-radius:16px; overflow:hidden; margin-bottom:24px; }
+.section-head { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; }
+.section-head h3 { font-size:15px; font-weight:600; }
+.section-head .badge { background:#E84545; color:#fff; font-size:12px; padding:2px 10px; border-radius:99px; margin-left:8px; }
+
+/* Table */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:12px 16px; color:#888; font-weight:500; border-bottom:1px solid rgba(255,255,255,0.06); background:#0f0f22; white-space:nowrap; }
+td { padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.04); color:#ccc; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,0.02); }
+
+/* Status badges */
+.badge-green { background:rgba(0,212,170,0.15); color:#00D4AA; padding:3px 10px; border-radius:99px; font-size:12px; }
+.badge-yellow { background:rgba(234,179,8,0.15); color:#EAB308; padding:3px 10px; border-radius:99px; font-size:12px; }
+.badge-red { background:rgba(232,69,69,0.15); color:#E84545; padding:3px 10px; border-radius:99px; font-size:12px; }
+.badge-gray { background:rgba(255,255,255,0.08); color:#888; padding:3px 10px; border-radius:99px; font-size:12px; }
+
+/* Buttons */
+.btn { padding:6px 14px; border-radius:8px; border:none; font-size:12px; cursor:pointer; font-weight:500; transition:all 0.2s; }
+.btn-approve { background:#00D4AA; color:#000; }
+.btn-approve:hover { background:#00b894; }
+.btn-reject { background:rgba(232,69,69,0.15); color:#E84545; border:1px solid rgba(232,69,69,0.3); }
+.btn-reject:hover { background:#E84545; color:#fff; }
+.btn-sm { padding:4px 10px; font-size:11px; }
+.btn-view { background:rgba(255,255,255,0.08); color:#fff; }
+.btn-view:hover { background:rgba(255,255,255,0.15); }
+
+/* Refresh */
+.refresh-btn { background:rgba(255,255,255,0.08); border:none; border-radius:8px; padding:8px 16px; color:#888; font-size:13px; cursor:pointer; }
+.refresh-btn:hover { color:#fff; background:rgba(255,255,255,0.12); }
+
+/* Empty */
+.empty { text-align:center; padding:48px; color:#555; font-size:14px; }
+
+/* Tags */
+.tag { background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:6px; font-size:11px; color:#888; margin-right:4px; }
+
+/* Detail panel */
+.detail-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
+.detail-overlay.active { display:flex; }
+.detail-panel { background:#13132a; border:1px solid rgba(255,255,255,0.1); border-radius:20px; width:640px; max-height:80vh; overflow-y:auto; }
+.detail-panel .panel-head { padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; }
+.detail-panel .panel-head h3 { font-size:16px; font-weight:600; }
+.detail-panel .panel-body { padding:24px; }
+.detail-panel .field { margin-bottom:16px; }
+.detail-panel .field label { color:#888; font-size:12px; display:block; margin-bottom:4px; }
+.detail-panel .field .val { color:#fff; font-size:14px; }
+.detail-panel .md-content { background:#0a0a14; border-radius:12px; padding:16px; font-size:13px; color:#ccc; line-height:1.8; max-height:300px; overflow-y:auto; }
+.close-btn { background:rgba(255,255,255,0.1); border:none; border-radius:8px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#fff; font-size:18px; }
+.close-btn:hover { background:rgba(255,255,255,0.2); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>🦞 管理后台</h1>
+    <p>龙虾数据空间 · 运营管理中心</p>
+    <input type="password" id="admin-pwd" placeholder="请输入管理密码" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">登 录</button>
+    <div class="login-error" id="login-error">密码错误，请重试</div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen">
+  <div class="admin-header">
+    <div class="logo"><span>🦞</span> 龙虾数据空间 · 管理后台</div>
+    <div class="header-right">
+      <button class="logout-btn" onclick="doLogout()">退出登录</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">📊 数据概览</button>
+    <button class="tab" onclick="switchTab('registrations')">📋 入驻申请 <span class="badge" id="tab-pending">0</span></button>
+    <button class="tab" onclick="switchTab('dataspaces')">🏢 数据空间</button>
+    <button class="tab" onclick="switchTab('catalog')">📦 产品目录</button>
+    <button class="tab" onclick="switchTab('agents')">🦞 龙虾列表</button>
+  </div>
+
+  <div class="content">
+    <!-- Dashboard -->
+    <div id="tab-dashboard">
+      <div class="stats" id="stats-grid">
+        <div class="stat-card"><div class="label">待处理申请</div><div class="value" id="stat-pending">-</div></div>
+        <div class="stat-card"><div class="label">已通过商家</div><div class="value" id="stat-dataspaces">-</div></div>
+        <div class="stat-card"><div class="label">产品目录数</div><div class="value" id="stat-catalog">-</div></div>
+        <div class="stat-card"><div class="label">注册龙虾</div><div class="value" id="stat-agents">-</div></div>
+      </div>
+      <div class="section">
+        <div class="section-head"><h3>最新入驻申请</h3><button class="refresh-btn" onclick="loadDashboard()">🔄 刷新</button></div>
+        <div id="dashboard-list"></div>
+      </div>
+    </div>
+
+    <!-- Registrations -->
+    <div id="tab-registrations" style="display:none">
+      <div class="section">
+        <div class="section-head">
+          <h3>入驻申请列表</h3>
+          <select id="reg-filter" onchange="loadRegistrations()" style="background:#0a0a14;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:6px 12px;color:#fff;font-size:13px;">
+            <option value="pending">待处理</option>
+            <option value="approved">已通过</option>
+            <option value="rejected">已拒绝</option>
+            <option value="all">全部</option>
+          </select>
+        </div>
+        <div id="registrations-list"></div>
+      </div>
+    </div>
+
+    <!-- Dataspaces -->
+    <div id="tab-dataspaces" style="display:none">
+      <div class="section">
+        <div class="section-head"><h3>数据空间列表</h3></div>
+        <div id="dataspaces-list"></div>
+      </div>
+    </div>
+
+    <!-- Catalog -->
+    <div id="tab-catalog" style="display:none">
+      <div class="section">
+        <div class="section-head"><h3>产品目录</h3></div>
+        <div id="catalog-list"></div>
+      </div>
+    </div>
+
+    <!-- Agents -->
+    <div id="tab-agents" style="display:none">
+      <div class="section">
+        <div class="section-head"><h3>注册龙虾</h3></div>
+        <div id="agents-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Overlay -->
+<div class="detail-overlay" id="detail-overlay">
+  <div class="detail-panel">
+    <div class="panel-head">
+      <h3 id="detail-title">详情</h3>
+      <button class="close-btn" onclick="closeDetail()">×</button>
+    </div>
+    <div class="panel-body" id="detail-body"></div>
+  </div>
+</div>
+
+<script>
+const API = '/api/catalog'
+const ADMIN_KEY = 'lobster_admin_key_v1'
+
+// ── Auth ──
+function doLogin() {
+  const pwd = document.getElementById('admin-pwd').value
+  if (pwd === 'admin123') {
+    localStorage.setItem(ADMIN_KEY, 'ok')
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('admin-screen').style.display = 'block'
+    loadDashboard()
+  } else {
+    document.getElementById('login-error').style.display = 'block'
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem(ADMIN_KEY)
+  location.reload()
+}
+
+function checkAuth() {
+  if (localStorage.getItem(ADMIN_KEY) === 'ok') {
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('admin-screen').style.display = 'block'
+    loadDashboard()
+  }
+}
+
+// ── Tabs ──
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'))
+  document.querySelectorAll('[id^=tab-]').forEach(t => t.style.display = 'none')
+  document.querySelector('.tab[onclick*="'+name+'"]').classList.add('active')
+  document.getElementById('tab-' + name).style.display = 'block'
+  if (name === 'dashboard') loadDashboard()
+  else if (name === 'registrations') loadRegistrations()
+  else if (name === 'dataspaces') loadDataspaces()
+  else if (name === 'catalog') loadCatalog()
+  else if (name === 'agents') loadAgents()
+}
+
+// ── API ──
+async function api(url, opts) {
+  const res = await fetch(API + url, opts)
+  return res.json()
+}
+
+// ── Dashboard ──
+async function loadDashboard() {
+  try {
+    const [regs, ds, cat, ags] = await Promise.all([
+      api('/registrations'),
+      api('/dataspaces'),
+      api('/entries'),
+      fetch('/api/market/agents').then(r=>r.json()).catch(()=>({agents:[]}))
+    ])
+    const pending = regs.registrations.filter(r=>r.status==='pending').length
+    document.getElementById('stat-pending').textContent = pending
+    document.getElementById('tab-pending').textContent = pending
+    document.getElementById('stat-dataspaces').textContent = ds.total
+    document.getElementById('stat-catalog').textContent = cat.total
+    document.getElementById('stat-agents').textContent = ags.agents ? ags.agents.length : 0
+    renderDashboardList(regs.registrations.slice(0,10))
+  } catch(e) { console.error(e) }
+}
+
+function renderDashboardList(list) {
+  if (!list.length) {
+    document.getElementById('dashboard-list').innerHTML = '<div class="empty">暂无数据</div>'
+    return
+  }
+  const rows = list.map(r => {
+    const badge = r.status === 'approved' ? 'badge-green' : r.status === 'rejected' ? 'badge-red' : 'badge-yellow'
+    const badgeText = r.status === 'approved' ? '已通过' : r.status === 'rejected' ? '已拒绝' : '待处理'
+    const actions = r.status === 'pending' ? 
+      `<button class="btn btn-approve btn-sm" onclick="reviewReg('${r.id}','approved')">通过</button>
+       <button class="btn btn-reject btn-sm" onclick="reviewReg('${r.id}','rejected')">拒绝</button>` :
+      ''
+    return `<tr>
+      <td>${esc(r.company_name)}</td>
+      <td>${esc(r.contact_name)}</td>
+      <td>${esc(r.contact_info||'--')}</td>
+      <td><span class="${badge}">${badgeText}</span></td>
+      <td>${r.register_type === 'agent' ? '🦞龙虾' : '👤人工'}</td>
+      <td>${fmt(r.created_at)}</td>
+      <td>${actions}</td>
+    </tr>`
+  }).join('')
+  document.getElementById('dashboard-list').innerHTML = `<table><thead><tr><th>公司</th><th>联系人</th><th>联系方式</th><th>状态</th><th>类型</th><th>申请时间</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table>`
+}
+
+// ── Registrations ──
+async function loadRegistrations() {
+  const filter = document.getElementById('reg-filter').value
+  const data = await api('/registrations?status=' + filter)
+  renderRegistrations(data.registrations || [])
+}
+
+function renderRegistrations(list) {
+  if (!list.length) {
+    document.getElementById('registrations-list').innerHTML = '<div class="empty">暂无数据</div>'
+    return
+  }
+  const rows = list.map(r => {
+    const badge = r.status === 'approved' ? 'badge-green' : r.status === 'rejected' ? 'badge-red' : 'badge-yellow'
+    const badgeText = r.status === 'approved' ? '已通过' : r.status === 'rejected' ? '已拒绝' : '待处理'
+    const actions = r.status === 'pending' ? 
+      `<button class="btn btn-approve btn-sm" onclick="reviewReg('${r.id}','approved')">通过</button>
+       <button class="btn btn-reject btn-sm" onclick="reviewReg('${r.id}','rejected')">拒绝</button>` :
+      `<span style="color:#555;font-size:12px">${fmt(r.updated_at)} ${esc(r.reviewed_by||'')}</span>`
+    return `<tr>
+      <td>${esc(r.company_name)}</td>
+      <td>${esc(r.contact_name)}</td>
+      <td>${esc(r.contact_info||'--')}</td>
+      <td><span class="${badge}">${badgeText}</span></td>
+      <td>${r.register_type === 'agent' ? '🦞龙虾' : '👤人工'}</td>
+      <td>${fmt(r.created_at)}</td>
+      <td>${actions}</td>
+    </tr>`
+  }).join('')
+  document.getElementById('registrations-list').innerHTML = `<table><thead><tr><th>公司</th><th>联系人</th><th>联系方式</th><th>状态</th><th>类型</th><th>申请时间</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table>`
+}
+
+async function reviewReg(id, status) {
+  if (!confirm('确认' + (status==='approved'?'通过':'拒绝') + '此申请？')) return
+  const r = await api('/registrations/' + id, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status, reviewed_by: 'admin'})
+  })
+  if (r.success || r.error === '申请不存在') {
+    if (status === 'approved') alert('已通过申请，数据空间已创建')
+    else alert('已拒绝')
+    loadRegistrations()
+    loadDashboard()
+  } else {
+    alert('操作失败：' + (r.error||'未知错误'))
+  }
+}
+
+// ── Dataspaces ──
+async function loadDataspaces() {
+  const data = await api('/dataspaces')
+  renderDataspaces(data.dataspaces || [])
+}
+
+function renderDataspaces(list) {
+  if (!list.length) {
+    document.getElementById('dataspaces-list').innerHTML = '<div class="empty">暂无数据</div>'
+    return
+  }
+  const rows = list.map(d => {
+    const badge = d.access_policy === 'public' ? 'badge-green' : d.access_policy === 'private' ? 'badge-red' : 'badge-gray'
+    return `<tr>
+      <td>${esc(d.name)}</td>
+      <td>${esc(d.owner_name)}</td>
+      <td><span class="${badge}">${d.access_policy}</span></td>
+      <td>${esc(d.tags||'[]')}</td>
+      <td>${fmt(d.created_at)}</td>
+    </tr>`
+  }).join('')
+  document.getElementById('dataspaces-list').innerHTML = `<table><thead><tr><th>名称</th><th>所有者</th><th>访问策略</th><th>标签</th><th>创建时间</th></tr></thead><tbody>${rows}</tbody></table>`
+}
+
+// ── Catalog ──
+async function loadCatalog() {
+  const data = await api('/entries?pageSize=100')
+  renderCatalog(data.entries || [])
+}
+
+function renderCatalog(list) {
+  if (!list.length) {
+    document.getElementById('catalog-list').innerHTML = '<div class="empty">暂无数据</div>'
+    return
+  }
+  const rows = list.map(c => {
+    const badge = c.status === 'online' ? 'badge-green' : 'badge-gray'
+    return `<tr>
+      <td>${esc(c.title)}</td>
+      <td>${esc(c.category||'--')}</td>
+      <td>${esc(c.dataspace_name||'--')}</td>
+      <td><span class="${badge}">${c.status}</span></td>
+      <td>${c.price > 0 ? '¥'+c.price : '免费'}</td>
+      <td>${c.view_count}</td>
+      <td><button class="btn btn-view btn-sm" onclick="showCatalogDetail('${c.id}')">查看</button></td>
+    </tr>`
+  }).join('')
+  document.getElementById('catalog-list').innerHTML = `<table><thead><tr><th>标题</th><th>分类</th><th>商家</th><th>状态</th><th>价格</th><th>浏览</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table>`
+}
+
+async function showCatalogDetail(id) {
+  const c = await api('/entries/' + id)
+  const tags = Array.isArray(c.tags) ? c.tags.join(' ') : (c.tags||'[]')
+  document.getElementById('detail-title').textContent = c.title
+  document.getElementById('detail-body').innerHTML = `
+    <div class="field"><label>商家</label><div class="val">${esc(c.dataspace_name||'--')}</div></div>
+    <div class="field"><label>分类</label><div class="val">${esc(c.category||'--')}</div></div>
+    <div class="field"><label>标签</label><div class="val">${esc(tags)}</div></div>
+    <div class="field"><label>访问策略</label><div class="val">${esc(c.access_policy||'--')}</div></div>
+    <div class="field"><label>价格</label><div class="val">${c.price>0?'¥'+c.price:'免费'}</div></div>
+    <div class="field"><label>浏览量</label><div class="val">${c.view_count}</div></div>
+    <div class="field"><label>创建时间</label><div class="val">${fmt(c.created_at)}</div></div>
+    <div class="field"><label>摘要</label><div class="val">${esc(c.summary||'--')}</div></div>
+    <div class="field"><label>正文内容</label><div class="md-content">${esc(c.content_md||'--')}</div></div>
+  `
+  document.getElementById('detail-overlay').classList.add('active')
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('active')
+}
+
+// ── Agents ──
+async function loadAgents() {
+  const data = await fetch('/api/market/agents').then(r=>r.json()).catch(()=>({agents:[]}))
+  renderAgents(data.agents || [])
+}
+
+function renderAgents(list) {
+  if (!list.length) {
+    document.getElementById('agents-list').innerHTML = '<div class="empty">暂无数据</div>'
+    return
+  }
+  const rows = list.map(a => {
+    const online = a.status === 'online'
+    const badge = online ? 'badge-green' : 'badge-gray'
+    return `<tr>
+      <td>${esc(a.agent_name)}</td>
+      <td>${esc(a.owner_name)}</td>
+      <td><span class="${badge}">${a.status}</span></td>
+      <td>${a.rating_cnt ? (a.rating_sum/a.rating_cnt).toFixed(1) : '--'}</td>
+      <td>${fmt(a.created_at)}</td>
+    </tr>`
+  }).join('')
+  document.getElementById('agents-list').innerHTML = `<table><thead><tr><th>龙虾名</th><th>拥有者</th><th>状态</th><th>评分</th><th>注册时间</th></tr></thead><tbody>${rows}</tbody></table>`
+}
+
+// ── Utils ──
+function esc(s) {
+  if (!s) return ''
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function fmt(s) {
+  if (!s) return '--'
+  return s.substring(0,16).replace('T',' ')
+}
+
+// Init
+checkAuth()
+</script>
+</body>
+</html>
