@@ -152,3 +152,54 @@ router.delete('/demands/:id', (req, res) => {
   db.prepare('DELETE FROM consumer_demands WHERE id = ?').run(req.params.id)
   res.json({ success: true })
 })
+
+// Get user's catalog entries (their data assets)
+router.get('/:id/catalog', (req, res) => {
+  // Find user's dataspace
+  const ds = db.prepare('SELECT id FROM dataspaces WHERE name = ? OR owner_name = ? LIMIT 1').get(req.params.id, req.params.id)
+  if (!ds) return res.json({ entries: [] })
+  const entries = db.prepare('SELECT * FROM catalog_entries WHERE dataspace_id = ? ORDER BY created_at DESC').all(ds.id)
+  res.json({ entries: entries, dataspace_id: ds.id })
+})
+
+// Add catalog entry for user
+router.post('/:id/catalog', (req, res) => {
+  const { dataspace_id, title, summary, content_md, category, tags, access_policy, api_endpoint, price } = req.body
+  if (!title || !content_md) return res.status(400).json({ error: '缺少必填字段：title, content_md' })
+  // Find or create dataspace for this consumer
+  let ds = db.prepare('SELECT id FROM dataspaces WHERE name = ? LIMIT 1').get(req.params.id)
+  if (!ds) {
+    const dsId = genId('ds_')
+    db.prepare(`INSERT INTO dataspaces (id, name, description, owner_name, access_policy, owner_role) VALUES (?, ?, ?, ?, 'public', 'merchant')`).run(dsId, req.params.id, '用户数据空间', req.params.id)
+    ds = { id: dsId }
+  }
+  const id = genId('entry_')
+  db.prepare(`INSERT INTO catalog_entries (id, dataspace_id, title, summary, content_md, category, tags, access_policy, api_endpoint, price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'online')`).run(id, ds.id, title, summary || '', content_md, category || '', JSON.stringify(tags || []), access_policy || 'public', api_endpoint || '', price || 0)
+  res.json({ id, success: true })
+})
+
+// Update demand status
+router.put('/demands/:id', (req, res) => {
+  const { status } = req.body
+  if (!['active','completed','cancelled'].includes(status)) return res.status(400).json({ error: '无效状态' })
+  db.prepare('UPDATE consumer_demands SET status = ? WHERE id = ?').run(status, req.params.id)
+  res.json({ success: true })
+})
+
+// Get user's lobster access info
+router.get('/:id/lobster-access', (req, res) => {
+  // Accept both string consumer_id and numeric id
+  const user = db.prepare('SELECT * FROM consumers WHERE id = ? OR id = ?').get(req.params.id, req.params.id)
+  if (!user) return res.status(404).json({ error: '用户不存在' })
+  // Count how many agents accessed user data
+  const ds = db.prepare('SELECT id FROM dataspaces WHERE name = ? LIMIT 1').get(req.params.id)
+  const accessCount = ds ? db.prepare('SELECT COUNT(*) as n FROM catalog_entries WHERE dataspace_id = ?').get(ds.id).n : 0
+  const totalViews = ds ? db.prepare('SELECT SUM(view_count) as v FROM catalog_entries WHERE dataspace_id = ?').get(ds.id).v || 0 : 0
+  res.json({ 
+    consumer_id: req.params.id,
+    username: user.username,
+    data_count: accessCount,
+    total_views: totalViews,
+    registered_at: user.created_at
+  })
+})
