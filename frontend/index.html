@@ -106,6 +106,7 @@
         <button onclick="showPage('guide')" class="text-gray-400 hover:text-white transition">使用指南</button>
         <button onclick="showPage('install')" class="text-gray-400 hover:text-white transition">安装</button>
         <button onclick="showRegisterModal()" class="px-3 py-1.5 bg-[#E84545] hover:bg-[#d63d3d] rounded-full font-bold text-xs transition flex-shrink-0">🚀 入驻</button>
+        <button id="nav-usercenter" onclick="showPage('usercenter')" class="hidden px-3 py-1.5 bg-[#6366f1] hover:bg-[#4f46e5] rounded-full text-xs font-bold transition">&#x1F464; 用户中心</button>
         <div id="nav-status" class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs">
           <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
           <span class="text-gray-400">平台在线</span>
@@ -584,7 +585,7 @@
     <div class="modal-content max-w-xl">
       <div class="p-6 border-b border-white/5 flex items-center justify-between">
         <div>
-          <h3 class="text-xl font-bold">注册 / 入驻</h3>
+          <h3 class="text-xl font-bold">注册 / 入驻 / 登录</h3>
           <p class="text-gray-400 text-sm mt-1">选择您的身份类型</p>
         </div>
         <button onclick="closeRegisterModal()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
@@ -654,6 +655,7 @@
           <button onclick="submitMerchantRegister()" class="w-full py-3 bg-[#E84545] hover:bg-[#d63d3d] rounded-xl font-bold transition">提交入驻申请</button>
         </div>
 
+        <div id="reg-login-link" class="hidden mt-4 pt-4 border-t border-white/5 text-center"><p class="text-gray-400 text-sm">已有账号？<button onclick="showLoginFromReg()" class="text-[#6366f1] hover:underline">立即登录</button></p></div>
         <div id="reg-success" class="hidden text-center py-8">
           <div class="text-5xl mb-4">&#x2705;</div>
           <div class="text-xl font-bold mb-2" id="reg-success-title">操作完成</div>
@@ -677,6 +679,151 @@
       </div>
     </div>
   </div>
+
+  <!-- ========== USER CENTER PAGE ========== -->
+  <div id="page-usercenter" class="hidden pt-24 min-h-screen">
+    <div class="max-w-4xl mx-auto px-6 py-8">
+      <button onclick="showPage('home')" class="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        返回首页
+      </button>
+      
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-3xl font-black"><span class="gradient-text">用户中心</span></h1>
+          <p class="text-gray-400 mt-1" id="uc-username">未登录</p>
+        </div>
+        <button onclick="ucLogout()" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full text-sm transition">退出登录</button>
+      </div>
+
+      <!-- Not logged in -->
+      <div id="uc-notlogged" class="hidden text-center py-20">
+        <div class="text-6xl mb-4">&#x1F464;</div>
+        <h2 class="text-xl font-bold mb-2">请先登录</h2>
+        <p class="text-gray-400 mb-6">登录后查看您的数据资产、发布能力和需求</p>
+        <button onclick="showLoginFromUC()" class="px-8 py-3 bg-[#6366f1] hover:bg-[#4f46e5] rounded-full font-bold transition">立即登录</button>
+      </div>
+
+      <!-- Logged in content -->
+      <div id="uc-loggedin" class="hidden">
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-6 border-b border-white/10 pb-4">
+          <button onclick="ucSwitchTab('assets')" class="uc-tab active px-4 py-2 rounded-t-lg text-sm font-bold" data-tab="assets">&#x1F4B0; 我的资产</button>
+          <button onclick="ucSwitchTab('capabilities')" class="uc-tab px-4 py-2 rounded-t-lg text-sm font-bold" data-tab="capabilities">&#x2699; 核心能力</button>
+          <button onclick="ucSwitchTab('demands')" class="uc-tab px-4 py-2 rounded-t-lg text-sm font-bold" data-tab="demands">&#x1F4E7; 合作需求</button>
+          <button onclick="ucSwitchTab('profile')" class="uc-tab px-4 py-2 rounded-t-lg text-sm font-bold" data-tab="profile">&#x1F3AF; 账号设置</button>
+        </div>
+
+        <!-- Assets Tab -->
+        <div id="uc-tab-assets" class="uc-content">
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-[#1A1A2E] rounded-2xl p-6 border border-white/10">
+              <div class="text-gray-400 text-sm mb-2">我的能力</div>
+              <div class="text-3xl font-black text-[#00D4AA]" id="uc-cap-count">0</div>
+            </div>
+            <div class="bg-[#1A1A2E] rounded-2xl p-6 border border-white/10">
+              <div class="text-gray-400 text-sm mb-2">我的需求</div>
+              <div class="text-3xl font-black text-[#E84545]" id="uc-dem-count">0</div>
+            </div>
+          </div>
+          <p class="text-gray-500 text-sm text-center py-8">在"核心能力"和"合作需求"页发布您的信息</p>
+        </div>
+
+        <!-- Capabilities Tab -->
+        <div id="uc-tab-capabilities" class="uc-content hidden">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold">我的核心能力</h3>
+            <button onclick="ucShowCapForm()" class="px-4 py-2 bg-[#00D4AA] hover:bg-[#00b894] text-black rounded-full text-sm font-bold transition">+ 发布能力</button>
+          </div>
+          <div id="uc-caps-list" class="space-y-3"></div>
+          <div id="uc-caps-empty" class="text-center py-12 text-gray-500 hidden">
+            <div class="text-4xl mb-3">&#x2699;</div>
+            <p>暂无核心能力，发布您的技术服务或资源供给</p>
+          </div>
+          <!-- Add capability form -->
+          <div id="uc-cap-form" class="hidden mt-6 bg-[#1A1A2E] rounded-2xl p-6 border border-[#00D4AA]/30">
+            <h4 class="font-bold mb-4">发布核心能力</h4>
+            <div class="space-y-3">
+              <input type="text" id="uc-cap-title" class="input-field" placeholder="能力标题，如：AI模型微调服务">
+              <textarea id="uc-cap-desc" class="input-field h-20 resize-none" placeholder="详细描述您的能力"></textarea>
+              <div class="grid grid-cols-2 gap-3">
+                <input type="text" id="uc-cap-category" class="input-field" placeholder="分类，如：技术服务">
+                <input type="number" id="uc-cap-price" class="input-field" placeholder="价格（0=面议）">
+              </div>
+              <div class="flex gap-2">
+                <button onclick="ucSubmitCap()" class="flex-1 py-3 bg-[#00D4AA] hover:bg-[#00b894] text-black rounded-xl font-bold transition">发布</button>
+                <button onclick="ucHideCapForm()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Demands Tab -->
+        <div id="uc-tab-demands" class="uc-content hidden">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold">合作/交易需求</h3>
+            <button onclick="ucShowDemForm()" class="px-4 py-2 bg-[#E84545] hover:bg-[#d63d3d] rounded-full text-sm font-bold transition">+ 发布需求</button>
+          </div>
+          <div id="uc-dems-list" class="space-y-3"></div>
+          <div id="uc-dems-empty" class="text-center py-12 text-gray-500 hidden">
+            <div class="text-4xl mb-3">&#x1F4E7</div>
+            <p>暂无需求，发布您的合作诉求或求购信息</p>
+          </div>
+          <!-- Add demand form -->
+          <div id="uc-dem-form" class="hidden mt-6 bg-[#1A1A2E] rounded-2xl p-6 border border-[#E84545]/30">
+            <h4 class="font-bold mb-4">发布合作需求</h4>
+            <div class="space-y-3">
+              <input type="text" id="uc-dem-title" class="input-field" placeholder="需求标题，如：求购GPU算力">
+              <textarea id="uc-dem-desc" class="input-field h-20 resize-none" placeholder="详细描述您的需求"></textarea>
+              <div class="grid grid-cols-3 gap-3">
+                <input type="text" id="uc-dem-category" class="input-field" placeholder="分类">
+                <select id="uc-dem-priority" class="input-field">
+                  <option value="low">&#x1F7E2; 低优先级</option>
+                  <option value="normal" selected>&#x1F7E1; 普通</option>
+                  <option value="high">&#x1F7E0; 高优先级</option>
+                  <option value="urgent">&#x1F534; 紧急</option>
+                </select>
+                <input type="number" id="uc-dem-budget" class="input-field" placeholder="预算（0=面议）">
+              </div>
+              <input type="text" id="uc-dem-deadline" class="input-field" placeholder="合作期限，如：2026-06-30">
+              <div class="flex gap-2">
+                <button onclick="ucSubmitDem()" class="flex-1 py-3 bg-[#E84545] hover:bg-[#d63d3d] text-white rounded-xl font-bold transition">发布</button>
+                <button onclick="ucHideDemForm()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition">取消</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="uc-tab-profile" class="uc-content hidden">
+          <h3 class="font-bold mb-4">账号设置</h3>
+          <div class="bg-[#1A1A2E] rounded-2xl p-6 border border-white/10 space-y-4">
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">用户名</label>
+              <input type="text" id="uc-profile-username" class="input-field bg-white/5 cursor-not-allowed" disabled>
+            </div>
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">昵称</label>
+              <input type="text" id="uc-profile-nickname" class="input-field" placeholder="设置昵称">
+            </div>
+            <div>
+              <label class="block text-sm text-gray-400 mb-1">手机号</label>
+              <input type="text" id="uc-profile-phone" class="input-field" placeholder="绑定手机号">
+            </div>
+            <button onclick="ucUpdateProfile()" class="w-full py-3 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-xl font-bold transition">保存修改</button>
+          </div>
+          
+          <h3 class="font-bold mt-8 mb-4">修改密码</h3>
+          <div class="bg-[#1A1A2E] rounded-2xl p-6 border border-white/10 space-y-4">
+            <input type="password" id="uc-old-pwd" class="input-field" placeholder="旧密码">
+            <input type="password" id="uc-new-pwd" class="input-field" placeholder="新密码（至少6位）">
+            <button onclick="ucChangePwd()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition">修改密码</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <footer class="py-12 border-t border-white/5 mt-20">
     <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
@@ -1247,6 +1394,187 @@
       closeLoginModal()
       alert('登录成功，欢迎 ' + (r.nickname || r.username) + '！')
     }
-  </script>
+  
+    // ========== USER CENTER ==========
+    let ucUserId = localStorage.getItem('consumer_id') || ''
+    let ucUsername = localStorage.getItem('consumer_username') || ''
+
+    function checkUcLogin() {
+      ucUserId = localStorage.getItem('consumer_id') || ''
+      ucUsername = localStorage.getItem('consumer_username') || ''
+      const nickname = localStorage.getItem('consumer_nickname') || ''
+      document.getElementById('uc-username').textContent = ucUsername || (nickname ? nickname : '未登录')
+      document.getElementById('uc-notlogged').classList.toggle('hidden', !!ucUserId)
+      document.getElementById('uc-loggedin').classList.toggle('hidden', !ucUserId)
+      // Show usercenter button in nav if logged in
+      const ucBtn = document.getElementById('nav-usercenter')
+      if (ucBtn) ucBtn.classList.toggle('hidden', !ucUserId)
+      if (ucUserId) {
+        loadUcData()
+      }
+    }
+
+    async function loadUcData() {
+      if (!ucUserId) return
+      try {
+        const [caps, dems] = await Promise.all([
+          api('/api/consumers/' + ucUserId + '/capabilities'),
+          api('/api/consumers/' + ucUserId + '/demands')
+        ])
+        document.getElementById('uc-cap-count').textContent = caps.capabilities ? caps.capabilities.length : 0
+        document.getElementById('uc-dem-count').textContent = dems.demands ? dems.demands.length : 0
+        renderUcCaps(caps.capabilities || [])
+        renderUcDems(dems.demands || [])
+      } catch(e) { console.error(e) }
+    }
+
+    function renderUcCaps(caps) {
+      const list = document.getElementById('uc-caps-list')
+      const empty = document.getElementById('uc-caps-empty')
+      if (!caps.length) {
+        list.innerHTML = ''
+        empty.classList.remove('hidden')
+        return
+      }
+      empty.classList.add('hidden')
+      list.innerHTML = caps.map(c => '<div class="bg-[#1A1A2E] rounded-xl p-4 border border-white/10 flex justify-between items-center"><div><div class="font-bold">' + escHtml(c.title) + '</div><div class="text-sm text-gray-400 mt-1">' + escHtml(c.description || '') + '</div><div class="text-xs text-[#00D4AA] mt-1">' + (c.price > 0 ? '¥'+c.price : '面议') + '</div></div><button onclick="ucDelCap(\'' + c.id + '\')" class="text-red-400 hover:text-red-300 text-sm">删除</button></div>').join('')
+    }
+
+    function renderUcDems(dems) {
+      const list = document.getElementById('uc-dems-list')
+      const empty = document.getElementById('uc-dems-empty')
+      const priorityColors = {low:'#22c55e',normal:'#eab308',high:'#f97316',urgent:'#ef4444'}
+      const priorityText = {low:'低',normal:'普通',high:'高',urgent:'紧急'}
+      if (!dems.length) {
+        list.innerHTML = ''
+        empty.classList.remove('hidden')
+        return
+      }
+      empty.classList.add('hidden')
+      list.innerHTML = dems.map(d => '<div class="bg-[#1A1A2E] rounded-xl p-4 border border-white/10"><div class="flex justify-between items-start"><div class="font-bold">' + escHtml(d.title) + '</div><span class="text-xs px-2 py-1 rounded" style="background:' + (priorityColors[d.priority]||'#666') + '33;color:' + (priorityColors[d.priority]||'#666') + '">' + (priorityText[d.priority]||'普通') + '</span></div><div class="text-sm text-gray-400 mt-1">' + escHtml(d.description || '') + '</div><div class="flex gap-4 mt-2 text-xs text-gray-500"><span>' + (d.category||'') + '</span><span>' + (d.budget>0?'预算¥'+d.budget:'') + '</span><span>' + (d.deadline?'截止:'+d.deadline:'') + '</span></div><button onclick="ucDelDem(\'' + d.id + '\')" class="text-red-400 hover:text-red-300 text-sm mt-2">删除</button></div>').join('')
+    }
+
+    function ucSwitchTab(tab) {
+      document.querySelectorAll('.uc-tab').forEach(t => t.classList.remove('active'))
+      document.querySelectorAll('.uc-tab[data-tab="'+tab+'"]').classList.add('active')
+      document.querySelectorAll('.uc-content').forEach(c => c.classList.add('hidden'))
+      document.getElementById('uc-tab-' + tab).classList.remove('hidden')
+    }
+
+    function ucShowCapForm() {
+      document.getElementById('uc-cap-form').classList.remove('hidden')
+    }
+    function ucHideCapForm() {
+      document.getElementById('uc-cap-form').classList.add('hidden')
+    }
+
+    async function ucSubmitCap() {
+      const title = document.getElementById('uc-cap-title').value.trim()
+      const desc = document.getElementById('uc-cap-desc').value.trim()
+      const cat = document.getElementById('uc-cap-category').value.trim()
+      const price = parseInt(document.getElementById('uc-cap-price').value) || 0
+      if (!title) { alert('请填写标题'); return }
+      const r = await api('/api/consumers/' + ucUserId + '/capabilities', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,description:desc,category:cat,price})})
+      if (r.success) {
+        alert('能力发布成功')
+        ucHideCapForm()
+        document.getElementById('uc-cap-title').value = ''
+        document.getElementById('uc-cap-desc').value = ''
+        document.getElementById('uc-cap-category').value = ''
+        document.getElementById('uc-cap-price').value = ''
+        loadUcData()
+      } else { alert(r.error || '发布失败') }
+    }
+
+    async function ucDelCap(id) {
+      if (!confirm('确定删除？')) return
+      const r = await api('/api/consumers/capabilities/' + id, {method:'DELETE'})
+      if (r.success) loadUcData()
+    }
+
+    function ucShowDemForm() {
+      document.getElementById('uc-dem-form').classList.remove('hidden')
+    }
+    function ucHideDemForm() {
+      document.getElementById('uc-dem-form').classList.add('hidden')
+    }
+
+    async function ucSubmitDem() {
+      const title = document.getElementById('uc-dem-title').value.trim()
+      const desc = document.getElementById('uc-dem-desc').value.trim()
+      const cat = document.getElementById('uc-dem-category').value.trim()
+      const priority = document.getElementById('uc-dem-priority').value
+      const budget = parseInt(document.getElementById('uc-dem-budget').value) || 0
+      const deadline = document.getElementById('uc-dem-deadline').value.trim()
+      if (!title) { alert('请填写标题'); return }
+      const r = await api('/api/consumers/' + ucUserId + '/demands', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,description:desc,category:cat,priority,budget,deadline})})
+      if (r.success) {
+        alert('需求发布成功')
+        ucHideDemForm()
+        document.getElementById('uc-dem-title').value = ''
+        document.getElementById('uc-dem-desc').value = ''
+        document.getElementById('uc-dem-category').value = ''
+        document.getElementById('uc-dem-budget').value = ''
+        document.getElementById('uc-dem-deadline').value = ''
+        loadUcData()
+      } else { alert(r.error || '发布失败') }
+    }
+
+    async function ucDelDem(id) {
+      if (!confirm('确定删除？')) return
+      const r = await api('/api/consumers/demands/' + id, {method:'DELETE'})
+      if (r.success) loadUcData()
+    }
+
+    async function ucUpdateProfile() {
+      const nickname = document.getElementById('uc-profile-nickname').value.trim()
+      const phone = document.getElementById('uc-profile-phone').value.trim()
+      const r = await api('/api/consumers/' + ucUserId, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({nickname,phone})})
+      if (r.success) {
+        if (nickname) localStorage.setItem('consumer_nickname', nickname)
+        alert('资料已更新')
+      } else { alert(r.error || '更新失败') }
+    }
+
+    async function ucChangePwd() {
+      const oldPwd = document.getElementById('uc-old-pwd').value
+      const newPwd = document.getElementById('uc-new-pwd').value
+      if (!oldPwd || !newPwd) { alert('请填写新旧密码'); return }
+      const r = await api('/api/consumers/' + ucUserId, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({old_password:oldPwd,new_password:newPwd})})
+      if (r.success) {
+        alert('密码已修改，请重新登录')
+        ucLogout()
+      } else { alert(r.error || '修改失败') }
+    }
+
+    function ucLogout() {
+      localStorage.removeItem('consumer_id')
+      localStorage.removeItem('consumer_username')
+      localStorage.removeItem('consumer_nickname')
+      ucUserId = ''
+      ucUsername = ''
+      checkUcLogin()
+      showPage('home')
+    }
+
+    function showLoginFromUC() {
+      showPage('home')
+      setTimeout(function() { showLoginModal() }, 100)
+    }
+
+    function showLoginFromReg() {
+      document.getElementById('register-modal').classList.remove('active')
+      setTimeout(function() { showLoginModal() }, 100)
+    }
+
+    function escHtml(s) {
+      if (!s) return ''
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    }
+
+    // Init check on page load
+    checkUcLogin()
+
+</script>
 </body>
 </html>

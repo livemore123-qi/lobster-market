@@ -15,6 +15,8 @@ const _migrations = [
   `ALTER TABLE dataspaces ADD COLUMN owner_role TEXT DEFAULT 'merchant' CHECK(owner_role IN ('agent','merchant'))`,
   `CREATE TABLE IF NOT EXISTS consumers (id TEXT PRIMARY KEY, username TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, phone TEXT DEFAULT '', nickname TEXT DEFAULT '', role TEXT DEFAULT 'consumer' CHECK(role IN ('consumer')), created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
   `ALTER TABLE registration_requests ADD COLUMN role TEXT DEFAULT 'manual' CHECK(role IN ('agent','merchant','manual','consumer'))`,
+  `CREATE TABLE IF NOT EXISTS consumer_capabilities (id TEXT PRIMARY KEY, consumer_id TEXT NOT NULL, title TEXT NOT NULL, description TEXT DEFAULT '', category TEXT DEFAULT '', tags TEXT DEFAULT '[]', price INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
+  `CREATE TABLE IF NOT EXISTS consumer_demands (id TEXT PRIMARY KEY, consumer_id TEXT NOT NULL, title TEXT NOT NULL, description TEXT DEFAULT '', category TEXT DEFAULT '', priority TEXT DEFAULT 'normal', deadline TEXT DEFAULT '', budget INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`,
 ]
 for (const m of _migrations) {
   try { db.exec(m) } catch(e) { /* column/table may already exist */ }

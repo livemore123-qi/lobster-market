@@ -81,3 +81,74 @@ router.get('/:id', (req, res) => {
 })
 
 export default router
+
+// Update consumer profile
+router.put('/:id', (req, res) => {
+  const { phone, nickname, old_password, new_password } = req.body
+  const user = db.prepare('SELECT * FROM consumers WHERE id = ?').get(req.params.id)
+  if (!user) return res.status(404).json({ error: '用户不存在' })
+  
+  // If changing password
+  if (new_password) {
+    if (!old_password) return res.status(400).json({ error: '需要旧密码' })
+    const oldHash = hashPassword(old_password)
+    if (user.password_hash !== oldHash) return res.status(401).json({ error: '旧密码错误' })
+    if (new_password.length < 6) return res.status(400).json({ error: '新密码至少6位' })
+    const newHash = hashPassword(new_password)
+    db.prepare('UPDATE consumers SET password_hash = ?, phone = ?, nickname = ? WHERE id = ?')
+      .run(newHash, phone || user.phone, nickname || user.nickname, req.params.id)
+    return res.json({ success: true, message: '密码已更新' })
+  }
+  
+  db.prepare('UPDATE consumers SET phone = ?, nickname = ? WHERE id = ?')
+    .run(phone || user.phone, nickname || user.nickname, req.params.id)
+  res.json({ success: true })
+})
+
+// Get consumer's capabilities
+router.get('/:id/capabilities', (req, res) => {
+  const caps = db.prepare('SELECT * FROM consumer_capabilities WHERE consumer_id = ? ORDER BY created_at DESC').all(req.params.id)
+  res.json({ capabilities: caps })
+})
+
+// Add capability
+router.post('/:id/capabilities', (req, res) => {
+  const { title, description, category, tags, price } = req.body
+  if (!title) return res.status(400).json({ error: '缺少标题' })
+  const id = genId('cap_')
+  db.prepare(`
+    INSERT INTO consumer_capabilities (id, consumer_id, title, description, category, tags, price)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(id, req.params.id, title, description || '', category || '', JSON.stringify(tags || []), price || 0)
+  res.json({ id, success: true })
+})
+
+// Get consumer's demands
+router.get('/:id/demands', (req, res) => {
+  const dems = db.prepare('SELECT * FROM consumer_demands WHERE consumer_id = ? ORDER BY created_at DESC').all(req.params.id)
+  res.json({ demands: dems })
+})
+
+// Add demand
+router.post('/:id/demands', (req, res) => {
+  const { title, description, category, priority, deadline, budget } = req.body
+  if (!title) return res.status(400).json({ error: '缺少标题' })
+  const id = genId('dem_')
+  db.prepare(`
+    INSERT INTO consumer_demands (id, consumer_id, title, description, category, priority, deadline, budget)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(id, req.params.id, title, description || '', category || '', priority || 'normal', deadline || '', budget || 0)
+  res.json({ id, success: true })
+})
+
+// Delete capability
+router.delete('/capabilities/:id', (req, res) => {
+  db.prepare('DELETE FROM consumer_capabilities WHERE id = ?').run(req.params.id)
+  res.json({ success: true })
+})
+
+// Delete demand
+router.delete('/demands/:id', (req, res) => {
+  db.prepare('DELETE FROM consumer_demands WHERE id = ?').run(req.params.id)
+  res.json({ success: true })
+})
