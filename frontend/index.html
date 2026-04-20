@@ -1343,6 +1343,7 @@
       document.getElementById('reg-success-msg').textContent = '欢迎 ' + username + '，您可以开始浏览平台数据了'
       document.getElementById('reg-form-consumer').classList.add('hidden')
       document.getElementById('reg-success').classList.remove('hidden')
+      document.getElementById('reg-login-link').classList.remove('hidden')
     }
     
     // Agent registration (lobster AI agent)
@@ -1372,6 +1373,7 @@
       document.getElementById('reg-success-msg').textContent = r.message
       document.getElementById('reg-form-merchant').classList.add('hidden')
       document.getElementById('reg-success').classList.remove('hidden')
+      document.getElementById('reg-login-link').classList.remove('hidden')
     }
     
     // Login modal
