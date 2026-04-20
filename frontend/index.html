@@ -105,7 +105,7 @@
         <button onclick="showPage('catalog')" class="text-gray-400 hover:text-white transition">数据目录</button>
         <button onclick="showPage('guide')" class="text-gray-400 hover:text-white transition">使用指南</button>
         <button onclick="showPage('install')" class="text-gray-400 hover:text-white transition">安装</button>
-        <button onclick="showRegisterModal()" class="px-3 py-1.5 bg-[#E84545] hover:bg-[#d63d3d] rounded-full font-bold text-xs transition flex-shrink-0">🚀 入驻</button>
+        <button onclick="showLoginModal()" class="px-3 py-1.5 bg-[#6366f1] hover:bg-[#d63d3d] rounded-full font-bold text-xs transition flex-shrink-0">登录</button>
         <button id="nav-usercenter" onclick="showPage('usercenter')" class="hidden px-3 py-1.5 bg-[#6366f1] hover:bg-[#4f46e5] rounded-full text-xs font-bold transition">&#x1F464; 用户中心</button>
         <div id="nav-status" class="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full text-xs">
           <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
@@ -674,7 +674,8 @@
       <div class="p-6 space-y-4">
         <input type="text" id="login-username" class="input-field" placeholder="用户名" onkeydown="if(event.key==='Enter')submitLogin()">
         <input type="password" id="login-password" class="input-field" placeholder="密码">
-        <button onclick="submitLogin()" class="w-full py-3 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-xl font-bold transition">登录</button>
+        <button onclick="submitLogin()" class="w-full py-3 bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-xl font-bold transition">登 录</button>
+        <div class="mt-4 pt-4 border-t border-white/5 text-center"><p class="text-gray-400 text-sm">没有账号？ <button onclick="showRegFromLogin()" class="text-[#6366f1] hover:underline">立即注册</button></p></div> hover:bg-[#4f46e5] text-white rounded-xl font-bold transition">登录</button>
         <div id="login-error" class="text-red-400 text-sm text-center hidden">用户名或密码错误</div>
       </div>
     </div>
@@ -1377,6 +1378,10 @@
     }
     
     // Login modal
+    function showRegFromLogin() {
+      document.getElementById('login-modal').classList.remove('active')
+      setTimeout(function() { showRegisterModal() }, 100)
+    }
     function showLoginModal() {
       document.getElementById('login-modal').classList.add('active')
       document.getElementById('login-error').classList.add('hidden')
