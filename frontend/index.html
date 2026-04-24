@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>移动红莓AI产品调研</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Noto Sans SC', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(160deg, #f0f4ff 0%, #e8eef8 40%, #dde4f4 100%);
+      background-attachment: fixed;
+    }
+    /* 浅色背景装饰 */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(120,150,255,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 100%, rgba(100,200,255,0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .page-container {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+    }
+    .white-card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(60, 80, 160, 0.08), 0 1px 4px rgba(60, 80, 160, 0.04);
+      border: 1px solid rgba(120, 140, 200, 0.1);
+      padding: 24px 20px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #3b5ce4;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(59, 92, 228, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .form-input, .form-select {
+      width: 100%;
+      padding: 13px 15px;
+      background: #f8f9ff;
+      border: 1.5px solid #e0e5f0;
+      border-radius: 12px;
+      color: #2d3748;
+      font-size: 15px;
+      transition: all 0.25s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: #3b5ce4;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(59, 92, 228, 0.1);
+    }
+    .form-input::placeholder { color: #a0aec0; }
+    .form-select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16'%3E%3Cpath fill='%23888' d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 44px;
+      cursor: pointer;
+    }
+    .form-select option { background: #fff; color: #2d3748; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 7px;
+      letter-spacing: 0.01em;
+    }
+    .hint {
+      font-size: 11px;
+      color: #a0aec0;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+    .field-group { margin-bottom: 16px; }
+    .field-group:last-child { margin-bottom: 0; }
+    .required-star { color: #e53e3e; margin-left: 2px; }
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #3b5ce4, #5b8df8);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 20px;
+      letter-spacing: 0.03em;
+      box-shadow: 0 4px 16px rgba(59, 92, 228, 0.3);
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 92, 228, 0.35); }
+    .submit-btn:active { transform: scale(0.98); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .nav-bar {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(120, 140, 200, 0.12);
+      padding: 14px 18px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .progress-bar { height: 4px; background: #e8eef8; border-radius: 2px; margin-top: 6px; }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b5ce4, #5b8df8);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+    textarea.form-input { resize: none; min-height: 85px; line-height: 1.5; }
+    .success-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(240, 244, 255, 0.92);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .success-overlay.show { display: flex; }
+    .success-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 30px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(59, 92, 228, 0.15);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #3b5ce4, #5b8df8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .success-icon { font-size: 64px; line-height: 1; }
+    .link-btn {
+      width: 100%; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s; border: none;
+    }
+    .link-btn-outline { background: #f0f4ff; color: #3b5ce4; }
+    .link-btn-outline:hover { background: #e8eef8; }
+    .link-btn-primary { background: linear-gradient(135deg, #3b5ce4, #5b8df8); color: #fff; box-shadow: 0 4px 12px rgba(59,92,228,0.25); }
+    .link-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(59,92,228,0.3); }
+  </style>
+</head>
+<body>
+
+  <div class="page-container">
+    <!-- 顶部导航 -->
+    <nav class="nav-bar">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">📋</span>
+        <span class="font-bold text-gray-700 text-base">客户调研</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-xs text-gray-400">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        在线
+      </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="max-w-2xl mx-auto px-4 py-6">
+
+      <!-- 标题 -->
+      <div class="text-center mb-5">
+        <h1 class="text-2xl font-black mb-2"><span class="gradient-text">移动红莓AI产品调研</span></h1>
+        <p class="text-gray-400 text-xs">请真实、客观填写，帮助我们更好地为您服务</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <p class="text-gray-400 text-xs mt-1" id="progressText">已填写 0%</p>
+      </div>
+
+      <form id="surveyForm">
+
+        <!-- 第一部分 -->
+        <div class="white-card">
+          <div class="section-title">👤 受访者信息</div>
+          <div class="space-y-4">
+            <div class="field-group">
+              <label class="form-label">访谈角色<span class="required-star">*</span></label>
+              <select name="interview_role" class="form-select" required>
+                <option value="">请选择角色</option>
+                <option value="客户-决策层">客户-决策层</option>
+                <option value="客户-采购">客户-采购</option>
+                <option value="客户-技术">客户-技术</option>
+                <option value="客户-使用人">客户-使用人</option>
+                <option value="客户经理">客户经理</option>
+                <option value="合作伙伴">合作伙伴</option>
+              </select>
+              <div class="hint">💡 从下拉菜单选择</div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">客户单位<span class="required-star">*</span></label>
+              <input type="text" name="client_company" class="form-input" placeholder="如：XX市政务服务中心" required>
+              <div class="hint">💡 填写完整单位名称</div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">客户行业<span class="required-star">*</span></label>
+              <select name="client_industry" class="form-select" required>
+                <option value="">请选择行业</option>
+                <option value="政务">政务</option>
+                <option value="金融">金融</option>
+                <option value="制造">制造</option>
+                <option value="教育">教育</option>
+                <option value="医疗">医疗</option>
+                <option value="文旅">文旅</option>
+                <option value="企业">企业</option>
+                <option value="其他">其他</option>
+              </select>
+              <div class="hint">💡 从下拉菜单选择</div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">受访者姓名</label>
+              <input type="text" name="interviewee_name" class="form-input" placeholder="填写真实姓名">
+            </div>
+            <div class="field-group">
+              <label class="form-label">项目阶段<span class="required-star">*</span></label>
+              <select name="project_stage" class="form-select" required>
+                <option value="">请选择阶段</option>
+                <option value="需求调研">需求调研</option>
+                <option value="选型评估">选型评估</option>
+                <option value="招投标">招投标</option>
+                <option value="已成交">已成交</option>
+                <option value="已流失">已流失</option>
+              </select>
+              <div class="hint">💡 从下拉菜单选择</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第二部分 -->
+        <div class="white-card">
+          <div class="section-title">📋 项目信息</div>
+          <div class="space-y-4">
+            <div class="field-group">
+              <label class="form-label">客户核心场景<span class="required-star">*</span></label>
+              <input type="text" name="core_scenario" class="form-input" placeholder="如：政务智能问答、企业知识库问答、AI办公助手" required>
+              <div class="hint">💡 描述客户使用的主要业务场景</div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">客户预算</label>
+              <input type="text" name="budget" class="form-input" placeholder="如：10-20万/年、按token计费">
+              <div class="hint">💡 预计年度费用或计费方式</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第三部分 -->
+        <div class="white-card">
+          <div class="section-title">💡 客户感知</div>
+          <div class="space-y-4">
+            <div class="field-group">
+              <label class="form-label">我方优点</label>
+              <textarea name="our_advantages" class="form-input" rows="3" placeholder="请描述客户对我方的正面评价，如产品质量、服务态度、响应速度等"></textarea>
+              <div class="hint">💡 客户认为我们做得好的地方</div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">我方缺点</label>
+              <textarea name="our_disadvantages" class="form-input" rows="3" placeholder="请描述客户对我方的负面反馈，如功能缺失、体验不佳等"></textarea>
+              <div class="hint">💡 客户认为我们需要改进的地方</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第四部分 -->
+        <div class="white-card">
+          <div class="section-title">🏢 竞品信息</div>
+          <div class="space-y-4">
+            <div class="field-group">
+              <label class="form-label">竞品名称</label>
+              <input type="text" name="competitor_name" class="form-input" placeholder="如：百度智能云、阿里云NLP、ChatGPT">
+              <div class="hint">💡 客户同时考虑或已使用的其他产品</div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">竞品价格区间</label>
+              <input type="text" name="competitor_price_range" class="form-input" placeholder="如：20-30万/年">
+            </div>
+            <div class="field-group">
+              <label class="form-label">我方差距</label>
+              <textarea name="our_gap" class="form-input" rows="3" placeholder="与竞品相比，我们的主要差距在哪里"></textarea>
+            </div>
+            <div class="field-group">
+              <label class="form-label">竞品使用场景</label>
+              <textarea name="competitor_scenario" class="form-input" rows="2" placeholder="客户使用竞品的具体场景"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第五部分 -->
+        <div class="white-card">
+          <div class="section-title">📝 优化建议 & 提交</div>
+          <div class="space-y-4">
+            <div class="field-group">
+              <label class="form-label">优化建议</label>
+              <textarea name="improvement" class="form-input" rows="3" placeholder="您对我方产品的功能、服务、价格等方面的建议"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="field-group">
+                <label class="form-label">填表人<span class="required-star">*</span></label>
+                <input type="text" name="submitter" class="form-input" placeholder="您的姓名" required>
+              </div>
+              <div class="field-group">
+                <label class="form-label">填表日期</label>
+                <input type="date" name="submit_date" class="form-input" id="submitDate" style="padding:13px 15px">
+              </div>
+            </div>
+            <div class="field-group">
+              <label class="form-label">备注</label>
+              <textarea name="remarks" class="form-input" rows="2" placeholder="其他未尽事宜"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">🚀 提交问卷</button>
+        <p class="text-center text-gray-400 text-xs mt-4 mb-8">提交后可再次填写，系统不会记录您的身份信息</p>
+      </form>
+    </main>
+  </div>
+
+  <!-- 成功弹窗 -->
+  <div class="success-overlay" id="successModal">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <h2 class="text-2xl font-bold text-gray-800 mt-4 mb-2">提交成功！</h2>
+      <p class="text-gray-500 text-sm mb-6">感谢您的反馈，我们会认真对待每一条建议</p>
+      <div class="space-y-3">
+        <button onclick="resetAndClose()" class="link-btn link-btn-outline">继续填写</button>
+        <button onclick="closeModal()" class="link-btn link-btn-primary">完成</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById('submitDate').value = today;
+
+    const requiredFields = ['interview_role', 'client_company', 'client_industry', 'project_stage', 'core_scenario', 'submitter'];
+    function updateProgress() {
+      let filled = 0;
+      requiredFields.forEach(name => {
+        const el = document.querySelector('[name="' + name + '"]');
+        if (el && el.value.trim()) filled++;
+      });
+      const pct = Math.round((filled / requiredFields.length) * 100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('progressText').textContent = '已填写 ' + pct + '%';
+    }
+    document.querySelectorAll('input, select, textarea').forEach(el => {
+      el.addEventListener('input', updateProgress);
+      el.addEventListener('change', updateProgress);
+    });
+
+    document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = '提交中...';
+      const form = e.target;
+      const data = {
+        interview_role: form.interview_role.value,
+        client_company: form.client_company.value,
+        client_industry: form.client_industry.value,
+        interviewee_name: form.interviewee_name.value,
+        project_stage: form.project_stage.value,
+        core_scenario: form.core_scenario.value,
+        budget: form.budget.value,
+        our_advantages: form.our_advantages.value,
+        our_disadvantages: form.our_disadvantages.value,
+        competitor_name: form.competitor_name.value,
+        competitor_scenario: form.competitor_scenario.value,
+        competitor_price_range: form.competitor_price_range.value,
+        our_gap: form.our_gap.value,
+        improvement: form.improvement.value,
+        submitter: form.submitter.value,
+        submit_date: form.submit_date.value,
+        remarks: form.remarks.value
+      };
+      try {
+        const res = await fetch('/api/survey/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (result.success) {
+          document.getElementById('successModal').classList.add('show');
+        } else {
+          alert('提交失败：' + (result.error || '未知错误'));
+        }
+      } catch (err) {
+        alert('提交失败，请检查网络后重试');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 提交问卷';
+      }
+    });
+
+    function resetAndClose() {
+      document.getElementById('surveyForm').reset();
+      document.getElementById('submitDate').value = today;
+      document.getElementById('successModal').classList.remove('show');
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function closeModal() {
+      document.getElementById('successModal').classList.remove('show');
+    }
+  </script>
+</body>
+</html>

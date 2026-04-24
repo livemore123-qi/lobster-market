@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>调研数据管理后台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap">
+  <style>
+    * { font-family: 'Noto Sans SC', sans-serif; box-sizing: border-box; }
+    body { background: #0F0F1A; margin: 0; }
+    .gradient-text {
+      background: linear-gradient(135deg, #F7C948 0%, #FF6B35 50%, #E84545 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+    th {
+      background: rgba(255,255,255,0.05);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
+    .badge-success { background: rgba(16,185,129,0.2); color: #10b981; }
+    .badge-warning { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .badge-info { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .stat-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; text-align: center; }
+    .export-btn { padding: 10px 24px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-size: 14px; font-weight: 600; border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+    .export-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+    .refresh-btn { padding: 10px 24px; background: rgba(255,255,255,0.1); color: #fff; font-size: 14px; font-weight: 500; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+    .refresh-btn:hover { background: rgba(255,255,255,0.15); }
+    .loading { text-align: center; padding: 40px; color: rgba(255,255,255,0.4); }
+    .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 48px 40px; max-width: 400px; width: 100%; text-align: center; }
+    .login-input { width: 100%; padding: 14px 16px; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 15px; text-align: center; transition: all 0.3s; }
+    .login-input:focus { outline: none; border-color: #E84545; box-shadow: 0 0 0 3px rgba(232,69,69,0.15); }
+    .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #E84545, #FF6B35); color: #fff; font-size: 15px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; margin-top: 20px; }
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(232,69,69,0.3); }
+    .login-error { color: #EF4444; font-size: 13px; margin-top: 12px; display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- 登录页 -->
+  <div class="login-wrap" id="loginPage">
+    <div class="login-card">
+      <div class="text-5xl mb-4">🔐</div>
+      <h1 class="text-2xl font-black mb-2"><span class="gradient-text">调研数据管理</span></h1>
+      <p class="text-gray-400 text-sm mb-8">请输入访问密码</p>
+      <input type="password" id="passwordInput" class="login-input" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="login-error" id="loginError">密码错误，请重试</div>
+      <button class="login-btn" onclick="doLogin()">登录</button>
+      <p class="text-gray-500 text-xs mt-6">内部系统 · 请勿泄露密码</p>
+    </div>
+  </div>
+
+  <!-- 管理后台（登录后显示） -->
+  <div id="adminPage" style="display:none">
+    <nav class="border-b border-white/10 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">📊</span>
+        <span class="font-bold text-lg text-white">调研数据管理</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="loadData()" class="refresh-btn">🔄 刷新</button>
+        <button onclick="exportCSV()" class="export-btn">📥 导出 CSV</button>
+        <a href="/" class="refresh-btn ml-2">📋 填报问卷</a>
+        <button onclick="logout()" class="refresh-btn ml-2" style="border-color:#E84545;color:#E84545">退出</button>
+      </div>
+    </nav>
+
+    <!-- 统计卡片 -->
+    <div class="max-w-6xl mx-auto px-6 py-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="statsCards">
+        <div class="stat-card">
+          <div class="text-3xl font-black text-white" id="statTotal">--</div>
+          <div class="text-xs text-gray-400 mt-1">总提交数</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-3xl font-black text-green-400" id="statIndustry">--</div>
+          <div class="text-xs text-gray-400 mt-1">覆盖行业</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-3xl font-black text-yellow-400" id="statStage">--</div>
+          <div class="text-xs text-gray-400 mt-1">项目阶段</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-lg font-bold text-white" id="lastUpdate">--</div>
+          <div class="text-xs text-gray-400 mt-1">最后更新</div>
+        </div>
+      </div>
+
+      <!-- 省份分布 -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="card p-4" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
+          <div class="font-bold text-white mb-3 text-sm">📍 省份分布</div>
+          <div id="provinceChart" class="space-y-2"></div>
+        </div>
+        <div class="card p-4" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
+          <div class="font-bold text-white mb-3 text-sm">📊 行业分布</div>
+          <div id="industryChart" class="space-y-2"></div>
+        </div>
+        <div class="card p-4" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
+          <div class="font-bold text-white mb-3 text-sm">📋 项目阶段分布</div>
+          <div id="stageChart" class="space-y-2"></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div class="card p-4" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
+          <div class="font-bold text-white mb-3 text-sm">📊 行业分布</div>
+          <div id="industryChart" class="space-y-2"></div>
+        </div>
+        <div class="card p-4" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;">
+          <div class="font-bold text-white mb-3 text-sm">📋 项目阶段分布</div>
+          <div id="stageChart" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- 数据表格 -->
+      <div class="rounded-xl overflow-hidden" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>省份</th><th>IP地址</th><th>提交时间</th><th>访谈角色</th><th>客户单位</th><th>行业</th>
+                <th>受访者</th><th>项目阶段</th><th>核心场景</th><th>预算</th>
+                <th>我方优点</th><th>我方缺点</th><th>竞品名称</th><th>竞品价格</th>
+                <th>我方差距</th><th>优化建议</th><th>填表人</th><th>填表日期</th><th>备注</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="20" class="loading">加载中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== 登录相关 ======
+    // 密码设置在这里（可改成多人账号或从服务器验证）
+    const VALID_PASSWORD = '9sK2\$pR7\\!vQ5&bG8';
+
+    function checkLogin() {
+      if (sessionStorage.getItem('survey_admin_auth') === 'ok') {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('adminPage').style.display = 'block';
+        loadData();
+      }
+    }
+
+    function doLogin() {
+      const pwd = document.getElementById('passwordInput').value;
+      if (pwd === VALID_PASSWORD) {
+        sessionStorage.setItem('survey_admin_auth', 'ok');
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('adminPage').style.display = 'block';
+        loadData();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+        document.getElementById('passwordInput').value = '';
+        document.getElementById('passwordInput').focus();
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('survey_admin_auth');
+      document.getElementById('adminPage').style.display = 'none';
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('loginError').style.display = 'none';
+    }
+
+    // ====== 数据相关 ======
+    let surveyData = [];
+
+    async function loadData() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '<tr><td colspan="20" class="loading">加载中...</td></tr>';
+      try {
+        const res = await fetch('/api/survey/export', { headers: { 'X-API-Secret': VALID_PASSWORD } });
+        const result = await res.json();
+        if (!result.success) throw new Error(result.error);
+        surveyData = result.data;
+        renderStats(result);
+        renderTable(result.data);
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="20" class="text-center py-10 text-red-400">加载失败：' + err.message + '</td></tr>';
+      }
+    }
+
+    function renderStats(result) {
+      document.getElementById('statTotal').textContent = result.total || 0;
+      document.getElementById('statIndustry').textContent = result.industries ? result.industries.length : 0;
+      document.getElementById('statStage').textContent = result.stages ? result.stages.length : 0;
+      document.getElementById('statProvince').textContent = result.provinces ? result.provinces.length : 0;
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent = now.toLocaleString('zh-CN', {month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+
+      
+      const provinceEl = document.getElementById('provinceChart');
+      if (result.provinces && result.provinces.length) {
+        const total = result.provinces.reduce((s, i) => s + i.count, 0);
+        provinceEl.innerHTML = result.provinces.slice(0,8).map(i => {
+          const pct = total ? Math.round(i.count / total * 100) : 0;
+          return '<div class="flex items-center gap-2"><span class="text-xs text-gray-400 w-16">' + (i.province||'') + '</span><div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-blue-500 rounded-full" style="width:' + pct + '%"></div></div><span class="text-xs text-white w-12">' + i.count + '人</span></div>';
+        }).join('');
+      } else {
+        provinceEl.innerHTML = '<div class="text-gray-500 text-sm">暂无数据</div>';
+      }
+
+      const industryEl = document.getElementById('industryChart');
+      if (result.industries && result.industries.length) {
+        const total = result.industries.reduce((s, i) => s + i.count, 0);
+        industryEl.innerHTML = result.industries.map(i => {
+          const pct = total ? Math.round(i.count / total * 100) : 0;
+          return '<div class="flex items-center gap-2"><span class="text-xs text-gray-400 w-14">' + (i.client_industry||'') + '</span><div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-green-500 rounded-full" style="width:' + pct + '%"></div></div><span class="text-xs text-white w-12">' + i.count + '人</span></div>';
+        }).join('');
+      } else {
+        industryEl.innerHTML = '<div class="text-gray-500 text-sm">暂无数据</div>';
+      }
+
+      const stageEl = document.getElementById('stageChart');
+      if (result.stages && result.stages.length) {
+        const total = result.stages.reduce((s, i) => s + i.count, 0);
+        stageEl.innerHTML = result.stages.map(i => {
+          const pct = total ? Math.round(i.count / total * 100) : 0;
+          return '<div class="flex items-center gap-2"><span class="text-xs text-gray-400 w-16">' + (i.project_stage||'') + '</span><div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden"><div class="h-full bg-yellow-500 rounded-full" style="width:' + pct + '%"></div></div><span class="text-xs text-white w-12">' + i.count + '人</span></div>';
+        }).join('');
+      } else {
+        stageEl.innerHTML = '<div class="text-gray-500 text-sm">暂无数据</div>';
+      }
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBody');
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="20" class="text-center py-10 text-gray-500">暂无数据</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(row => {
+        const escape = (v) => (v || '').toString().replace(/"/g, '""');
+        return '<tr>' +
+          '<td class="text-gray-500">' + (row.id||'') + '</td>' +
+          '<td class="text-xs text-gray-400">' + ((row.created_at||'').slice(0,16)) + '</td>' +
+          '<td><span class="badge badge-info">' + escape(row.interview_role) + '</span></td>' +
+          '<td title="' + escape(row.client_company) + '">' + escape(row.client_company||'-') + '</td>' +
+          '<td><span class="badge badge-success">' + escape(row.client_industry) + '</span></td>' +
+          '<td>' + escape(row.interviewee_name||'-') + '</td>' +
+          '<td><span class="badge badge-warning">' + escape(row.project_stage) + '</span></td>' +
+          '<td title="' + escape(row.core_scenario) + '">' + escape(row.core_scenario||'-') + '</td>' +
+          '<td>' + escape(row.budget||'-') + '</td>' +
+          '<td title="' + escape(row.our_advantages) + '">' + escape(row.our_advantages||'-') + '</td>' +
+          '<td title="' + escape(row.our_disadvantages) + '">' + escape(row.our_disadvantages||'-') + '</td>' +
+          '<td>' + escape(row.competitor_name||'-') + '</td>' +
+          '<td>' + escape(row.competitor_price_range||'-') + '</td>' +
+          '<td title="' + escape(row.our_gap) + '">' + escape(row.our_gap||'-') + '</td>' +
+          '<td title="' + escape(row.improvement) + '">' + escape(row.improvement||'-') + '</td>' +
+          '<td>' + escape(row.submitter||'-') + '</td>' +
+          '<td class="text-xs text-gray-400">' + escape(row.submit_date||'-') + '</td>' +
+          '<td title="' + escape(row.remarks) + '">' + escape(row.remarks||'-') + '</td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    function exportCSV() {
+      if (!surveyData.length) { alert('暂无数据可导出'); return; }
+      const headers = ['ID','提交时间','访谈角色','客户单位','行业','受访者','项目阶段','核心场景','预算','我方优点','我方缺点','竞品名称','竞品价格','我方差距','优化建议','填表人','填表日期','备注'];
+      const cols = ['id','created_at','interview_role','client_company','client_industry','interviewee_name','project_stage','core_scenario','budget','our_advantages','our_disadvantages','competitor_name','competitor_price_range','our_gap','improvement','submitter','submit_date','remarks'];
+      const rows = surveyData.map(row => cols.map(c => {
+        let v = ((row[c] || '')).toString();
+        if (v.includes(',') || v.includes('"') || v.includes('\n')) v = '"' + v.replace(/"/g, '""') + '"';
+        return v;
+      }));
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '调研数据_' + new Date().toISOString().slice(0,10) + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // 初始化检查
+    checkLogin();
+  </script>
+</body>
+</html>
